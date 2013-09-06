@@ -31,8 +31,8 @@ class RedisOps(object):
 		val = json.loads(val_raw)
 		return (val['id'], val['body'])
 
-	# return version id
-	def headline_set(self, s):
+	# return (new id, prev_id)
+	def headline_set(self, body):
 		r = self._get_redis()
 		key = self.prefix + 'value'
 		while True:
@@ -50,7 +50,7 @@ class RedisOps(object):
 						prev_id = ''
 						id = 0
 						val['id'] = id
-					val['body'] = s
+					val['body'] = body
 					val_raw = json.dumps(val)
 					pipe.multi()
 					pipe.set(key, val_raw)
