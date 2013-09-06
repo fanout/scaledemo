@@ -1,5 +1,7 @@
 import time
 import uuid
+import json
+import random
 import rbtree
 import zmq
 import tnetstring
@@ -13,16 +15,30 @@ zurl_in_specs = ['ipc:///tmp/zurl-out']
 
 logger = lib.logger
 
+# state:
+#   0 = init, do initial request
+#   1 = made initial request, waiting for response
+#   2 = got response, waiting to poll
+#   3 = polling, waiting for response
+#   4 = got error on initial request, waiting to try again
+#   5 = got error on poll, waiting to try again
 class ClientSession(object):
-	def __init__(self):
+	def __init__(self, _id, now, startdelay):
+		self.id = id
 		self.req_id = None
 		self.exp = None
+		self.updated = False
 		self.sock = None
 		self.instance_id = None
-		self.now = 0
+		self.now = now
 
 		self.state = 0
-		self.set_timeout(0)
+		self.cur_id = None
+		self.cur_body = None
+		self.tries = 0
+		self.retry_time = None
+		self.set_timeout(startdelay)
+		logger.info('%s: starting...' % id(self))
 
 	def send_request(self, path):
 		self.req_id = str(uuid.uuid4())
@@ -30,7 +46,7 @@ class ClientSession(object):
 		m['from'] = self.instance_id
 		m['id'] = self.req_id
 		m['method'] = 'GET'
-		m['uri'] = 'http://localhost:8080' + path
+		m['uri'] = 'http://localhost:7999' + path
 		self.sock.send('T' + tnetstring.dumps(m))
 
 	def set_timeout(self, timeout):
@@ -43,29 +59,83 @@ class ClientSession(object):
 		self.sock = sock
 		self.instance_id = instance_id
 		self.now = now
-		if m is not None:
-			self.req_id = None
 		timedout = False
-		if self.exp is not None and now >= self.exp:
-			timedout = True
-			self.exp = None
+		if m is not None:
+			logger.debug('%s: received %s' % (id(self), m))
+			if m.get('type') == 'keep-alive':
+				return
+			self.req_id = None
+		else:
+			if self.exp is not None and now >= self.exp:
+				timedout = True
+				self.exp = None
 		self._process(m, timedout)
 
-	def _process(m=None, timedout=False):
+	def _process(self, m=None, timedout=False):
 		if m is not None:
-			assert(self.state == 1)
-			logger.info('got response')
-			self.state = 2
-			self.set_timeout(5000)
+			if self.state != 1 and self.state != 3:
+				logger.info('%s: received unexpected response: %s' % (id(self), m))
+				assert(0)
+			assert(self.state == 1 or self.state == 3)
+			if m.get('type') == 'error' or m.get('code') != 200:
+				logger.debug('%s: received error or unexpected response: %s' % (id(self), m))
+				if self.state == 1:
+					self.state = 4
+				else: # 3
+					self.state = 5
+				if self.tries == 1:
+					self.retry_time = 1
+				elif self.tries < 8:
+					logger.info("tries=%d, retry_time=%s, m=%s" % (self.tries, self.retry_time, m))
+					self.retry_time *= 2
+				t = (self.retry_time * 1000) + random.randint(0, 1000)
+				logger.debug('%s: trying again in %dms' % (id(self), t))
+				self.set_timeout(t)
+				return
+			else:
+				resp = json.loads(m['body'])
+				if 'id' in resp:
+					self.cur_id = resp['id']
+					self.cur_body = resp['body']
+					logger.debug('%s: received id=%d, body=[%s]' % (id(self), self.cur_id, self.cur_body))
+				else:
+					logger.debug('%s: received empty response' % id(self))
+
+				if self.state == 1:
+					logger.info('%s: started' % id(self))
+				else:
+					self.updated = True
+
+				# poll again soon
+				self.tries = 0
+				self.state = 2
+				t = random.randint(0, 1000)
+				logger.debug('%s: polling in %dms' % (id(self), t))
+				self.set_timeout(t)
 		else:
+			assert(self.state == 0 or self.state == 2 or self.state == 4 or self.state == 5)
 			if self.state == 0:
-				logger.info('sending request')
-				self.send_request('/')
+				url = '/headline/value/'
+				logger.debug('%s: GET %s' % (id(self), url))
+				self.send_request(url)
+				self.tries += 1
 				self.state = 1
 			elif self.state == 2:
 				if timedout:
+					url = '/headline/value/?last_id=' + str(self.cur_id)
+					logger.debug('%s: GET %s' % (id(self), url))
+					self.send_request(url)
+					self.state = 3
+			elif self.state == 4:
+				if timedout:
 					self.state = 0
 					self._process()
+			elif self.state == 5:
+				if timedout:
+					url = '/headline/value/?last_id=' + str(self.cur_id)
+					logger.debug('%s: GET %s' % (id(self), url))
+					self.send_request(url)
+					self.state = 3
 
 def client_worker(c, count):
 	instance_id = 'clientmanager'
@@ -85,8 +155,13 @@ def client_worker(c, count):
 	session_by_timeout = rbtree.rbtree()
 	timeout_by_session = dict()
 
+	cur_id = None
+	cur_count = 0
+
+	now = int(time.time() * 1000)
+
 	for n in range(0, count):
-		s = ClientSession()
+		s = ClientSession(n, now, n/10)
 		sessions.append(s)
 		if s.exp is not None:
 			time_key = format(s.exp, '014d') + '_' + str(id(s))
@@ -109,7 +184,7 @@ def client_worker(c, count):
 			timeout = exp - now
 			if timeout < 0:
 				timeout = 0
-		logger.debug('polling with timeout=%s' % timeout)
+		logger.debug('zmq poll with timeout=%s' % timeout)
 		socks = dict(poller.poll(timeout))
 		if socks.get(in_sock) == zmq.POLLIN:
 			m_raw = in_sock.recv()
@@ -160,6 +235,18 @@ def client_worker(c, count):
 				time_key = format(s.exp, '014d') + '_' + str(id(s))
 				session_by_timeout[time_key] = (s.exp, s)
 				timeout_by_session[s] = time_key
+
+			if s.updated:
+				s.updated = False
+				if cur_id is None or s.cur_id > cur_id:
+					cur_id = s.cur_id
+					cur_count = 1
+				else:
+					assert(s.cur_id == cur_id)
+					cur_count += 1
+				# print every 10% complete
+				if cur_count == count or (cur_count % (count / 10) == 0):
+					logger.info('updated: %d/%d' % (cur_count, count))
 
 control = None
 
