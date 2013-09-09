@@ -38,7 +38,7 @@ class ClientSession(object):
 		self.tries = 0
 		self.retry_time = None
 		self.set_timeout(startdelay)
-		logger.info('%s: starting...' % id(self))
+		logger.debug('%s: starting...' % id(self))
 
 	def send_request(self, path):
 		self.req_id = str(uuid.uuid4())
@@ -98,13 +98,11 @@ class ClientSession(object):
 					self.cur_id = resp['id']
 					self.cur_body = resp['body']
 					logger.debug('%s: received id=%d, body=[%s]' % (id(self), self.cur_id, self.cur_body))
+					if self.state == 1:
+						logger.debug('%s: started' % id(self))
+					self.updated = True
 				else:
 					logger.debug('%s: received empty response' % id(self))
-
-				if self.state == 1:
-					logger.info('%s: started' % id(self))
-				else:
-					self.updated = True
 
 				# poll again soon
 				self.tries = 0
@@ -125,6 +123,7 @@ class ClientSession(object):
 					url = '/headline/value/?last_id=' + str(self.cur_id)
 					logger.debug('%s: GET %s' % (id(self), url))
 					self.send_request(url)
+					self.tries += 1
 					self.state = 3
 			elif self.state == 4:
 				if timedout:
@@ -135,6 +134,7 @@ class ClientSession(object):
 					url = '/headline/value/?last_id=' + str(self.cur_id)
 					logger.debug('%s: GET %s' % (id(self), url))
 					self.send_request(url)
+					self.tries += 1
 					self.state = 3
 
 def client_worker(c, count):
@@ -155,6 +155,7 @@ def client_worker(c, count):
 	session_by_timeout = rbtree.rbtree()
 	timeout_by_session = dict()
 
+	all_started = False
 	cur_id = None
 	cur_count = 0
 
@@ -238,15 +239,24 @@ def client_worker(c, count):
 
 			if s.updated:
 				s.updated = False
-				if cur_id is None or s.cur_id > cur_id:
-					cur_id = s.cur_id
-					cur_count = 1
+				if not all_started:
+					if s.state >= 2:
+						cur_count += 1
+						# print every 10% complete
+						if cur_count == count or (cur_count % (count / 10) == 0):
+							logger.info('started: %d/%d' % (cur_count, count))
+						if cur_count == count:
+							all_started = True
 				else:
-					assert(s.cur_id == cur_id)
-					cur_count += 1
-				# print every 10% complete
-				if cur_count == count or (cur_count % (count / 10) == 0):
-					logger.info('updated: %d/%d' % (cur_count, count))
+					if cur_id is None or s.cur_id > cur_id:
+						cur_id = s.cur_id
+						cur_count = 1
+					else:
+						assert(s.cur_id == cur_id)
+						cur_count += 1
+					# print every 10% complete
+					if cur_count == count or (cur_count % (count / 10) == 0):
+						logger.info('updated: %d/%d' % (cur_count, count))
 
 control = None
 
