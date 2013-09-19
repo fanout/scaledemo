@@ -144,6 +144,7 @@ def server_route_worker(c, rpc_spec, route_spec, instance_id):
 	in_sock.connect(rpc_spec)
 	out_sock = zmq_context.socket(zmq.DEALER)
 	out_sock.connect(route_spec)
+	out_sock.linger = 0
 	poller = zmq.Poller()
 	poller.register(in_sock, zmq.POLLIN)
 	poller.register(out_sock, zmq.POLLIN)
@@ -176,4 +177,4 @@ def ping(instance_id):
 	client.call('ping', {'to': instance_id})
 
 def start(instance_id, count):
-	client.call('start', {'to': instance_id, 'count': count})
+	client.call('setup-clients', {'to': instance_id, 'base-uri': 'http://localhost:7999/headline', 'count': count})
