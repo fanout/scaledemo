@@ -285,7 +285,7 @@ class ClientSession(object):
 				# poll again soon
 				self.tries = 0
 				self.state = WaitingToPoll
-				t = 0 #random.randint(0, 1000)
+				t = random.randint(0, 1000)
 				logger.debug('%s: polling in %dms' % (self.name, t))
 				self.set_timeout(t)
 		else:
