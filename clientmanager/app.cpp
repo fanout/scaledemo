@@ -375,6 +375,9 @@ private slots:
 			errored += s.errored;
 		}
 
+		if(received == total && logTimer->isActive())
+			logTimer->stop();
+
 		tryLog();
 	}
 
