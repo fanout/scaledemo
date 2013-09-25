@@ -113,10 +113,16 @@ private slots:
 			}
 
 			QVariantMap resp = vresp.toMap();
+			bool updated = false;
 			if(resp.contains("id"))
 			{
-				curId = resp["id"].toInt();
-				curBody = resp["body"].toString();
+				int newId = resp["id"].toInt();
+				if(curId != newId)
+				{
+					curId = newId;
+					curBody = resp["body"].toString();
+					updated = true;
+				}
 			}
 
 			errored = false;
@@ -130,8 +136,10 @@ private slots:
 				started = true;
 				emit q->started(curId, curBody);
 			}
-			else
+			else if(updated)
+			{
 				emit q->received(curId, curBody);
+			}
 		}
 	}
 
