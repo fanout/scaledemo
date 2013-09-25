@@ -355,13 +355,14 @@ private slots:
 	{
 		ClientThread *c = (ClientThread *)sender();
 		threadStats[c] = stats;
+		curId = stats.id;
 
 		// compile
 		total = 0;
 		started = 0;
 		received = 0;
 		errored = 0;
-		curId = -1;
+
 		QHashIterator<ClientThread*, ClientThread::Stats> it(threadStats);
 		while(it.hasNext())
 		{
@@ -369,9 +370,9 @@ private slots:
 			const ClientThread::Stats &s = it.value();
 			total += s.total;
 			started += s.started;
-			received += s.received;
+			if(s.id == curId)
+				received += s.received;
 			errored += s.errored;
-			curId = s.id;
 		}
 
 		tryLog();
