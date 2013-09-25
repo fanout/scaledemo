@@ -24,9 +24,11 @@ SOURCES += \
 
 HEADERS += \
 	$$PWD/httprequest.h \
+	$$PWD/client.h \
 	$$PWD/app.h
 
 SOURCES += \
 	$$PWD/httprequest.cpp \
+	$$PWD/client.cpp \
 	$$PWD/app.cpp \
 	$$PWD/main.cpp

@@ -39,7 +39,7 @@ public:
 	HttpRequest(QObject *parent = 0);
 	~HttpRequest();
 
-	void start(const QString &method, const QUrl &uri, const HttpHeaders &headers, const QHostAddress &connectHost);
+	void start(const QString &method, const QUrl &uri, const HttpHeaders &headers, const QHostAddress &connectAddr);
 
 	// may call this multiple times
 	void writeBody(const QByteArray &body);

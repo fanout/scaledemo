@@ -301,6 +301,9 @@ cat >$1/modules_new.cpp <<EOT
     o = new qc_internal_pkgconfig(conf, "libzmq", "libzmq >= 2.0", VersionMin, "2.0");
     o->required = true;
     o->disabled = false;
+    o = new qc_internal_pkgconfig(conf, "QJson", "qjson", VersionAny, "");
+    o->required = true;
+    o->disabled = false;
 
 EOT
 cat >$1/conf4.h <<EOT

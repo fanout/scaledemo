@@ -276,14 +276,14 @@ HttpRequest::~HttpRequest()
 	delete d;
 }
 
-void HttpRequest::start(const QString &method, const QUrl &uri, const HttpHeaders &headers, const QHostAddress &connectHost)
+void HttpRequest::start(const QString &method, const QUrl &uri, const HttpHeaders &headers, const QHostAddress &connectAddr)
 {
 	assert(d->state == Private::Stopped);
 	d->state = Private::Starting;
 	d->method = method;
 	d->uri = uri;
 	d->requestHeaders = headers;
-	d->connectAddr = connectHost;
+	d->connectAddr = connectAddr;
 	d->update();
 }
 

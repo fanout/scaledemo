@@ -32,6 +32,23 @@
 #include "log.h"
 #include "httpheaders.h"
 #include "httprequest.h"
+#include "client.h"
+
+#include <qthread.h>
+     
+    class I : public QThread
+    {
+    public:
+    static void sleep(unsigned long secs) {
+    QThread::sleep(secs);
+    }
+    static void msleep(unsigned long msecs) {
+    QThread::msleep(msecs);
+    }
+    static void usleep(unsigned long usecs) {
+    QThread::usleep(usecs);
+    }
+    };
 
 /*static void cleanStringList(QStringList *in)
 {
@@ -60,12 +77,18 @@ public:
 	QSet<Worker*> workers;
 	QHash<QByteArray, Worker*> streamWorkersByRid;
 	QHash<Worker*, QList<QByteArray> > reqHeadersByWorker;*/
-	QSet<HttpRequest*> reqs;
+	QSet<Client*> clients;
+	int started;
+	int received;
+	int curId;
+	QTimer *logTimer;
+	bool needLog;
 
 	Private(App *_q) :
 		QObject(_q),
-		q(_q)/*,
-		in_sock(0),
+		q(_q),
+		needLog(false)
+		/*in_sock(0),
 		in_stream_sock(0),
 		out_sock(0),
 		in_req_sock(0),
@@ -74,10 +97,18 @@ public:
 	{
 		connect(ProcessQuit::instance(), SIGNAL(quit()), SLOT(doQuit()));
 		connect(ProcessQuit::instance(), SIGNAL(hup()), SLOT(reload()));
+
+		logTimer = new QTimer(this);
+		connect(logTimer, SIGNAL(timeout()), SLOT(logTimer_timeout()));
+		logTimer->setSingleShot(true);
 	}
 
 	~Private()
 	{
+		logTimer->disconnect(this);
+		logTimer->setParent(0);
+		logTimer->deleteLater();
+		logTimer = 0;
 	}
 
 	void start()
@@ -267,15 +298,21 @@ public:
 
 		log_info("started");
 
-		QHostInfo info = QHostInfo::fromName("headline");
+		qsrand(time(NULL));
+
+		started = 0;
+		received = 0;
+		curId = -1;
 
 		for(int n = 0; n < args[0].toInt(); ++n)
 		{
-			HttpRequest *req = new HttpRequest(this);
-			reqs += req;
-			connect(req, SIGNAL(readyRead()), SLOT(req_readyRead()));
-			req->start("GET", QUrl("http://headline/value/"), HttpHeaders(), info.addresses().first());
-			req->endBody();
+			Client *c = new Client(QString::number(n), this);
+			clients += c;
+			connect(c, SIGNAL(started(int, const QString &)), SLOT(client_started(int, const QString &)));
+			connect(c, SIGNAL(received(int, const QString &)), SLOT(client_received(int, const QString &)));
+			c->start(QUrl("http://headline"));
+			if(n % 10 == 0)
+				I::msleep(1);
 		}
 	}
 
@@ -291,21 +328,58 @@ public:
 	}*/
 
 private slots:
-	void req_readyRead()
+	void client_started(int id, const QString &body)
 	{
-		HttpRequest *req = (HttpRequest *)sender();
+		Q_UNUSED(body);
 
-		if(req->isFinished())
+		++started;
+		assert(started <= clients.count());
+		if(curId == -1)
+			curId = id;
+
+		tryLog();
+	}
+
+	void client_received(int id, const QString &body)
+	{
+		Q_UNUSED(body);
+
+		if(curId == -1 || id > curId)
 		{
-			printf("code=%d, reason=[%s]\n", req->responseCode(), req->responseReason().data());
-			foreach(const HttpHeader &h, req->responseHeaders())
-				printf("[%s] = [%s]\n", h.first.data(), h.second.data());
-			printf("body=[%s]\n", req->readResponseBody().data());
+			curId = id;
+			received = 1;
+		}
+		else
+		{
+			assert(id == curId);
+			++received;
+		}
 
-			reqs.remove(req);
-			delete req;
-			if(reqs.isEmpty())
-				emit q->quit();
+		tryLog();
+	}
+
+	void client_error()
+	{
+		log_info("client error");
+	}
+
+	void tryLog()
+	{
+		if(!logTimer->isActive())
+		{
+			log_info("stats: T=%d/S=%d/R=%d cur-id=%d", clients.count(), started, received, curId);
+			logTimer->start(100);
+		}
+		else
+			needLog = true;
+	}
+
+	void logTimer_timeout()
+	{
+		if(needLog)
+		{
+			needLog = false;
+			log_info("stats: T=%d/S=%d/R=%d cur-id=%d", clients.count(), started, received, curId);
 		}
 	}
 
