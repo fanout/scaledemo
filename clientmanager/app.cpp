@@ -376,7 +376,10 @@ private slots:
 		}
 
 		if(received == total && logTimer->isActive())
+		{
 			logTimer->stop();
+			needLog = false;
+		}
 
 		tryLog();
 	}
