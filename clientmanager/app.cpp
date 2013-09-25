@@ -33,6 +33,7 @@
 #include "httpheaders.h"
 #include "httprequest.h"
 #include "client.h"
+#include "clientthread.h"
 
 #include <qthread.h>
      
@@ -78,8 +79,11 @@ public:
 	QHash<QByteArray, Worker*> streamWorkersByRid;
 	QHash<Worker*, QList<QByteArray> > reqHeadersByWorker;*/
 	QSet<Client*> clients;
+	QHash<ClientThread*, ClientThread::Stats> threadStats;
+	int total;
 	int started;
 	int received;
+	int errored;
 	int curId;
 	QTimer *logTimer;
 	bool needLog;
@@ -304,15 +308,18 @@ public:
 		received = 0;
 		curId = -1;
 
-		for(int n = 0; n < args[0].toInt(); ++n)
+		int threadCount = QThread::idealThreadCount();
+		int clientCount = args[0].toInt() / threadCount;
+		for(int n = 0; n < threadCount; ++n)
 		{
-			Client *c = new Client(QString::number(n), this);
-			clients += c;
-			connect(c, SIGNAL(started(int, const QString &)), SLOT(client_started(int, const QString &)));
-			connect(c, SIGNAL(received(int, const QString &)), SLOT(client_received(int, const QString &)));
-			c->start(QUrl("http://headline"));
-			if(n % 10 == 0)
-				I::msleep(1);
+			int extra = 0;
+			if(n < (args[0].toInt() % threadCount))
+				++extra;
+			log_info("creating thread with client count=%d", clientCount + extra);
+			ClientThread *c = new ClientThread(this);
+			connect(c, SIGNAL(statsChanged(const ClientThread::Stats &)), SLOT(clientThread_statsChanged(const ClientThread::Stats &)));
+			c->start();
+			c->setupClients(QUrl("http://headline"), clientCount + extra);
 		}
 	}
 
@@ -327,7 +334,49 @@ public:
 		out_sock->write(QList<QByteArray>() << (receiver + ' ' + part));
 	}*/
 
+	void tryLog()
+	{
+		if(!logTimer->isActive())
+		{
+			doLog();
+			logTimer->start(100);
+		}
+		else
+			needLog = true;
+	}
+
+	void doLog()
+	{
+		log_info("stats T=%d/S=%d/R=%d/E=%d cur-id=%d", total, started, received, errored, curId);
+	}
+
 private slots:
+	void clientThread_statsChanged(const ClientThread::Stats &stats)
+	{
+		ClientThread *c = (ClientThread *)sender();
+		threadStats[c] = stats;
+
+		// compile
+		total = 0;
+		started = 0;
+		received = 0;
+		errored = 0;
+		curId = -1;
+		QHashIterator<ClientThread*, ClientThread::Stats> it(threadStats);
+		while(it.hasNext())
+		{
+			it.next();
+			const ClientThread::Stats &s = it.value();
+			total += s.total;
+			started += s.started;
+			received += s.received;
+			errored += s.errored;
+			curId = s.id;
+		}
+
+		tryLog();
+	}
+
 	void client_started(int id, const QString &body)
 	{
 		Q_UNUSED(body);
@@ -363,23 +412,12 @@ private slots:
 		log_info("client error");
 	}
 
-	void tryLog()
-	{
-		if(!logTimer->isActive())
-		{
-			log_info("stats: T=%d/S=%d/R=%d cur-id=%d", clients.count(), started, received, curId);
-			logTimer->start(100);
-		}
-		else
-			needLog = true;
-	}
-
 	void logTimer_timeout()
 	{
 		if(needLog)
 		{
 			needLog = false;
-			log_info("stats: T=%d/S=%d/R=%d cur-id=%d", clients.count(), started, received, curId);
+			doLog();
 		}
 	}
 

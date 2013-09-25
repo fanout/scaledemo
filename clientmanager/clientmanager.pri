@@ -25,10 +25,12 @@ SOURCES += \
 HEADERS += \
 	$$PWD/httprequest.h \
 	$$PWD/client.h \
+	$$PWD/clientthread.h \
 	$$PWD/app.h
 
 SOURCES += \
 	$$PWD/httprequest.cpp \
 	$$PWD/client.cpp \
+	$$PWD/clientthread.cpp \
 	$$PWD/app.cpp \
 	$$PWD/main.cpp
