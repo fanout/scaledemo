@@ -77,7 +77,7 @@ public:
 	{
 		if(!statsTimer->isActive())
 		{
-			statsTimer->start(100);
+			statsTimer->start(20);
 			emitStats();
 		}
 		else
