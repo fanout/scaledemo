@@ -19,6 +19,7 @@
 #define CLIENTTHREAD_H
 
 #include <QThread>
+#include <QDateTime>
 
 class QUrl;
 class Client;
@@ -37,6 +38,7 @@ public:
 		int errored;
 		int id;
 		QString body;
+		QDateTime lastChangeTime;
 
 		Stats() :
 			total(0),

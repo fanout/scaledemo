@@ -30,7 +30,7 @@ class ClientThread::Worker : public QObject
 
 public:
 	QUrl baseUri;
-	QSet<Client*> clients;
+	QList<Client*> clients;
 	QSet<Client*> clientsErrored;
 	Stats stats;
 	QTimer *statsTimer;
@@ -58,18 +58,65 @@ public:
 public slots:
 	void setupClients(const QUrl &_baseUri, int count)
 	{
-		baseUri = _baseUri;
-
-		for(int n = 0; n < count; ++n)
+		bool baseUriChanged = false;
+		if(baseUri != _baseUri)
 		{
-			Client *c = new Client(QString::number(n), this);
+			baseUriChanged = true;
+			baseUri = _baseUri;
+		}
+
+		// no change?
+		if(!baseUriChanged && clients.count() == count)
+			return;
+
+		if(baseUriChanged)
+		{
+			// start over
+			qDeleteAll(clients);
+			clients.clear();
+			clientsErrored.clear();
+
+			stats.started = 0;
+			stats.received = 0;
+			stats.errored = 0;
+		}
+		else
+		{
+			// shrink
+			while(clients.count() > count)
+			{
+				Client *c = clients.takeLast();
+
+				if(c->isStarted())
+					--stats.started;
+
+				if(clientsErrored.contains(c))
+				{
+					clientsErrored.remove(c);
+					--stats.errored;
+				}
+
+				if(c->receivedId() == stats.id)
+					--stats.received;
+
+				delete c;
+			}
+		}
+
+		// grow
+		int index = clients.count();
+		for(int n = 0; clients.count() < count; ++n)
+		{
+			Client *c = new Client(QString::number(index++), this);
 			clients += c;
 			connect(c, SIGNAL(started(int, const QString &)), SLOT(client_started(int, const QString &)));
 			connect(c, SIGNAL(received(int, const QString &)), SLOT(client_received(int, const QString &)));
-			c->start(baseUri);
-			if(n % 10 == 0)
-				msleep(1);
+			c->start(baseUri, n / 10);
 		}
+
+		stats.lastChangeTime = QDateTime::currentDateTime();
+
+		tryStats();
 	}
 
 public:
@@ -106,7 +153,12 @@ private slots:
 		++stats.started;
 		assert(stats.started <= clients.count());
 		if(stats.id == -1)
+		{
 			stats.id = id;
+			stats.body = body;
+		}
+
+		stats.lastChangeTime = QDateTime::currentDateTime();
 
 		tryStats();
 	}
@@ -122,6 +174,7 @@ private slots:
 		if(stats.id == -1 || id > stats.id)
 		{
 			stats.id = id;
+			stats.body = body;
 			stats.received = 1;
 		}
 		else
@@ -130,11 +183,14 @@ private slots:
 			++stats.received;
 		}
 
+		// expedite stats once the last client has received
 		if(clients.count() == stats.received && statsTimer->isActive())
 		{
 			statsTimer->stop();
 			statsPending = false;
 		}
+
+		stats.lastChangeTime = QDateTime::currentDateTime();
 
 		tryStats();
 	}
@@ -144,6 +200,10 @@ private slots:
 		Client *c = (Client *)sender();
 
 		clientsErrored += c;
+
+		stats.lastChangeTime = QDateTime::currentDateTime();
+
+		tryStats();
 	}
 
 	void statsTimer_timeout()
@@ -151,7 +211,7 @@ private slots:
 		if(statsPending)
 		{
 			statsPending = false;
-			emitStats();
+			tryStats();
 		}
 	}
 };

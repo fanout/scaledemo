@@ -30,7 +30,14 @@ public:
 	Client(const QString &name, QObject *parent = 0);
 	~Client();
 
-	void start(const QUrl &baseUri);
+	bool isStarted() const;
+	bool isErrored() const;
+	int id() const;
+	QString body() const;
+	int receivedId() const;
+	QString receivedBody() const;
+
+	void start(const QUrl &baseUri, int startDelay = 0);
 
 signals:
 	void started(int id, const QString &body);

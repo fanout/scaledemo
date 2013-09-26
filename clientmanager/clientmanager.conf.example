@@ -1,0 +1,3 @@
+[clientmanager]
+rpc_in_spec=tcp://*:10100
+stats_out_spec=tcp://*:10101

@@ -39,6 +39,7 @@ public:
 	int tries;
 	int retryTime;
 	bool started;
+	bool received;
 	bool errored;
 	int curId;
 	QString curBody;
@@ -49,7 +50,9 @@ public:
 		req(0),
 		tries(0),
 		started(false),
-		errored(false)
+		received(false),
+		errored(false),
+		curId(-1)
 	{
 		t = new QTimer(this);
 		connect(t, SIGNAL(timeout()), SLOT(t_timeout()));
@@ -63,9 +66,12 @@ public:
 		t->deleteLater();
 	}
 
-	void start()
+	void start(int startDelay)
 	{
-		doReq();
+		if(startDelay > 0)
+			t->start(startDelay);
+		else
+			doReq();
 	}
 
 	void doReq()
@@ -90,6 +96,7 @@ public:
 		connect(req, SIGNAL(readyRead()), SLOT(req_readyRead()));
 		connect(req, SIGNAL(error()), SLOT(req_error()));
 		++tries;
+		t->start(60000);
 		req->start("GET", uri, HttpHeaders(), connectAddr);
 		req->endBody();
 	}
@@ -138,6 +145,7 @@ private slots:
 			}
 			else if(updated)
 			{
+				received = true;
 				emit q->received(curId, curBody);
 			}
 		}
@@ -168,7 +176,16 @@ private slots:
 
 	void t_timeout()
 	{
-		doReq();
+		if(req)
+		{
+			// timeout while requesting
+			req_error();
+		}
+		else
+		{
+			// timeout waiting to request
+			doReq();
+		}
 	}
 };
 
@@ -184,10 +201,46 @@ Client::~Client()
 	delete d;
 }
 
-void Client::start(const QUrl &baseUri)
+bool Client::isStarted() const
+{
+	return d->started;
+}
+
+bool Client::isErrored() const
+{
+	return d->errored;
+}
+
+int Client::id() const
+{
+	return d->curId;
+}
+
+QString Client::body() const
+{
+	return d->curBody;
+}
+
+int Client::receivedId() const
+{
+	if(d->received)
+		return d->curId;
+	else
+		return -1;
+}
+
+QString Client::receivedBody() const
+{
+	if(d->received)
+		return d->curBody;
+	else
+		return QString();
+}
+
+void Client::start(const QUrl &baseUri, int startDelay)
 {
 	d->baseUri = baseUri;
-	d->start();
+	d->start(startDelay);
 }
 
 #include "client.moc"
