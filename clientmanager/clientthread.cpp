@@ -130,6 +130,12 @@ private slots:
 			++stats.received;
 		}
 
+		if(clients.count() == stats.received && statsTimer->isActive())
+		{
+			statsTimer->stop();
+			statsPending = false;
+		}
+
 		tryStats();
 	}
 
