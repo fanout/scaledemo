@@ -135,6 +135,8 @@ private slots:
 			errored = false;
 			tries = 0;
 			int delay = qrand() % 1000;
+			if(started)
+				delay += 2000; // if this is a push, give some room to breath
 			log_debug("%s: polling in %dms", qPrintable(name), delay);
 			t->start(delay);
 
