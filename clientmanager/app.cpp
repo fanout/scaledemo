@@ -62,6 +62,8 @@ public:
 	QByteArray instanceId;
 	QList<ClientThread*> threads;
 	QHash<ClientThread*, ClientThread::Stats> threadStats;
+	QUrl baseUri;
+	int clientCount;
 	int total;
 	int started;
 	int received;
@@ -78,6 +80,7 @@ public:
 		q(_q),
 		rpc_in_sock(0),
 		stats_out_sock(0),
+		clientCount(0),
 		statsPending(false)
 	{
 		connect(ProcessQuit::instance(), SIGNAL(quit()), SLOT(doQuit()));
@@ -218,14 +221,20 @@ public:
 		log_info("started");
 	}
 
-	void setupClients(const QUrl &baseUri, int count)
+	void setupClients(const QUrl &_baseUri, int count)
 	{
+		if(baseUri == _baseUri && count == clientCount)
+			return; // no change
+
+		baseUri = _baseUri;
+		clientCount = count;
+
 		log_info("setupClients: %s %d", baseUri.toEncoded().data(), count);
 
 		for(int n = 0; n < threads.count(); ++n)
 		{
 			ClientThread *c = threads[n];
-			int threadClientCount = count / threads.count();
+			int threadClientCount = clientCount / threads.count();
 			if(n < (count % threads.count()))
 				++threadClientCount;
 
@@ -379,7 +388,9 @@ private slots:
 			QVariantHash resp;
 			resp["id"] = id;
 			resp["success"] = true;
-			resp["value"] = QVariant();
+			QVariantHash ret;
+			ret["id"] = instanceId;
+			resp["value"] = ret;
 			QByteArray buf = TnetString::fromVariant(resp);
 			reqMessage = reqMessage.createReply(QList<QByteArray>() << buf);
 			rpc_in_sock->write(reqMessage);
