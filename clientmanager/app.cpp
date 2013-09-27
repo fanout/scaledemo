@@ -318,8 +318,16 @@ private slots:
 			errored += s.errored;
 		}
 
+		QDateTime now = QDateTime::currentDateTime();
 		if(received > hadReceived)
-			receivedTimes += ReceivedTime(QDateTime::currentDateTime(), received - hadReceived, stats.latency);
+		{
+			receivedTimes += ReceivedTime(now, received - hadReceived, stats.latency);
+		}
+		else if(received < hadReceived) // could happen if restarted
+		{
+			receivedTimes.clear();
+			receivedTimes += ReceivedTime(now, received, stats.latency);
+		}
 
 		// expedite?
 		if(!hadReceivedAll && received == total && statsTimer->isActive())
