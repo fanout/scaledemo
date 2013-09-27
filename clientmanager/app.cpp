@@ -171,6 +171,7 @@ public:
 
 		QString rpc_in_spec = settings.value("clientmanager/rpc_in_spec").toString();
 		QString stats_out_spec = settings.value("clientmanager/stats_out_spec").toString();
+		int threadCount = settings.value("clientmanager/threads", QThread::idealThreadCount()).toInt();
 
 		if(rpc_in_spec.isEmpty() || stats_out_spec.isEmpty())
 		{
@@ -206,7 +207,6 @@ public:
 		curId = -1;
 		latency = -1;
 
-		int threadCount = QThread::idealThreadCount();
 		for(int n = 0; n < threadCount; ++n)
 		{
 			ClientThread *c = new ClientThread(this);
