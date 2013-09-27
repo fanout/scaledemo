@@ -22,6 +22,7 @@
 #include <QTimer>
 #include <QUrl>
 #include <QMetaType>
+#include <QDateTime>
 #include "client.h"
 
 class ClientThread::Worker : public QObject
@@ -35,6 +36,7 @@ public:
 	Stats stats;
 	QTimer *statsTimer;
 	bool statsPending;
+	QList<QDateTime> receivedTimes;
 
 	Worker(QObject *parent = 0) :
 		QObject(parent),
@@ -114,8 +116,6 @@ public slots:
 			c->start(baseUri, n / 10);
 		}
 
-		stats.lastChangeTime = QDateTime::currentDateTime();
-
 		tryStats();
 	}
 
@@ -124,18 +124,29 @@ public:
 	{
 		if(!statsTimer->isActive())
 		{
+			statsPending = false;
+
+			stats.total = clients.count();
+			stats.errored = clientsErrored.count();
+
+			if(!receivedTimes.isEmpty())
+			{
+				QDateTime now = QDateTime::currentDateTime();
+				int latencyTotal = 0;
+				foreach(const QDateTime &dt, receivedTimes)
+					latencyTotal += (int)(now.toMSecsSinceEpoch() - dt.toMSecsSinceEpoch());
+				stats.latency = latencyTotal / receivedTimes.count();
+				receivedTimes.clear();
+			}
+			else
+				stats.latency = -1;
+
 			statsTimer->start(20);
-			emitStats();
+
+			emit statsChanged(stats);
 		}
 		else
 			statsPending = true;
-	}
-
-	void emitStats()
-	{
-		stats.total = clients.count();
-		stats.errored = clientsErrored.count();
-		emit statsChanged(stats);
 	}
 
 signals:
@@ -157,8 +168,6 @@ private slots:
 			stats.id = id;
 			stats.body = body;
 		}
-
-		stats.lastChangeTime = QDateTime::currentDateTime();
 
 		tryStats();
 	}
@@ -183,14 +192,14 @@ private slots:
 			++stats.received;
 		}
 
+		receivedTimes += QDateTime::currentDateTime();
+
 		// expedite stats once the last client has received
 		if(clients.count() == stats.received && statsTimer->isActive())
 		{
 			statsTimer->stop();
 			statsPending = false;
 		}
-
-		stats.lastChangeTime = QDateTime::currentDateTime();
 
 		tryStats();
 	}
@@ -201,18 +210,13 @@ private slots:
 
 		clientsErrored += c;
 
-		stats.lastChangeTime = QDateTime::currentDateTime();
-
 		tryStats();
 	}
 
 	void statsTimer_timeout()
 	{
 		if(statsPending)
-		{
-			statsPending = false;
 			tryStats();
-		}
 	}
 };
 

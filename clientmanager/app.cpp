@@ -41,6 +41,21 @@ class App::Private : public QObject
 	Q_OBJECT
 
 public:
+	class ReceivedTime
+	{
+	public:
+		QDateTime dt;
+		int count;
+		int latency;
+
+		ReceivedTime(const QDateTime &_dt, int _count, int _latency) :
+			dt(_dt),
+			count(_count),
+			latency(_latency)
+		{
+		}
+	};
+
 	App *q;
 	QZmq::RepRouter *rpc_in_sock;
 	QZmq::Socket *stats_out_sock;
@@ -53,33 +68,34 @@ public:
 	int errored;
 	int curId;
 	QString curBody;
-	QDateTime lastChangeTime;
-	QTimer *logTimer;
-	bool logPending;
+	int latency;
+	QTimer *statsTimer;
+	bool statsPending;
+	QList<ReceivedTime> receivedTimes;
 
 	Private(App *_q) :
 		QObject(_q),
 		q(_q),
 		rpc_in_sock(0),
 		stats_out_sock(0),
-		logPending(false)
+		statsPending(false)
 	{
 		connect(ProcessQuit::instance(), SIGNAL(quit()), SLOT(doQuit()));
 		connect(ProcessQuit::instance(), SIGNAL(hup()), SLOT(reload()));
 
-		logTimer = new QTimer(this);
-		connect(logTimer, SIGNAL(timeout()), SLOT(logTimer_timeout()));
-		logTimer->setSingleShot(true);
+		statsTimer = new QTimer(this);
+		connect(statsTimer, SIGNAL(timeout()), SLOT(statsTimer_timeout()));
+		statsTimer->setSingleShot(true);
 	}
 
 	~Private()
 	{
 		qDeleteAll(threads);
 
-		logTimer->disconnect(this);
-		logTimer->setParent(0);
-		logTimer->deleteLater();
-		logTimer = 0;
+		statsTimer->disconnect(this);
+		statsTimer->setParent(0);
+		statsTimer->deleteLater();
+		statsTimer = 0;
 	}
 
 	void start()
@@ -188,6 +204,7 @@ public:
 		received = 0;
 		errored = 0;
 		curId = -1;
+		latency = -1;
 
 		int threadCount = QThread::idealThreadCount();
 		for(int n = 0; n < threadCount; ++n)
@@ -217,20 +234,39 @@ public:
 		}
 	}
 
-	void tryLog()
+	void tryStats()
 	{
-		if(!logTimer->isActive())
+		if(!statsTimer->isActive())
 		{
-			doLog();
-			logTimer->start(100);
+			statsPending = false;
+
+			if(!receivedTimes.isEmpty())
+			{
+				QDateTime now = QDateTime::currentDateTime();
+				int receivedCount = 0;
+				int latencyTotal = 0;
+				foreach(const ReceivedTime &rt, receivedTimes)
+				{
+					receivedCount += rt.count;
+					latencyTotal += ((int)(now.toMSecsSinceEpoch() - rt.dt.toMSecsSinceEpoch()) + rt.latency) * rt.count;
+				}
+				latency = latencyTotal / receivedCount;
+				receivedTimes.clear();
+			}
+			else
+				latency = -1;
+
+			statsTimer->start(100);
+
+			emitStats();
 		}
 		else
-			logPending = true;
+			statsPending = true;
 	}
 
-	void doLog()
+	void emitStats()
 	{
-		log_info("stats T=%d/S=%d/R=%d/E=%d cur-id=%d", total, started, received, errored, curId);
+		log_info("stats T=%d/S=%d/R=%d/E=%d/L=%d cur-id=%d", total, started, received, errored, latency, curId);
 
 		QVariantHash m;
 		m["id"] = instanceId;
@@ -244,10 +280,8 @@ public:
 			m["cur-body"] = curBody.toUtf8();
 		}
 
-		assert(!lastChangeTime.isNull());
-
-		QDateTime now = QDateTime::currentDateTime();
-		m["latency"] = (int)(now.toMSecsSinceEpoch() - lastChangeTime.toMSecsSinceEpoch());
+		if(latency != -1)
+			m["latency"] = latency;
 
 		QByteArray buf = "stats " + TnetString::fromVariant(m);
 		stats_out_sock->write(QList<QByteArray>() << buf);
@@ -264,9 +298,7 @@ private slots:
 			curBody = stats.body;
 		}
 
-		if(lastChangeTime.isNull() || stats.lastChangeTime > lastChangeTime)
-			lastChangeTime = stats.lastChangeTime;
-
+		int hadReceived = received;
 		bool hadReceivedAll = (total > 0 && received == total);
 
 		// compile
@@ -286,23 +318,23 @@ private slots:
 			errored += s.errored;
 		}
 
+		if(received > hadReceived)
+			receivedTimes += ReceivedTime(QDateTime::currentDateTime(), received - hadReceived, stats.latency);
+
 		// expedite?
-		if(!hadReceivedAll && received == total && logTimer->isActive())
+		if(!hadReceivedAll && received == total && statsTimer->isActive())
 		{
-			logTimer->stop();
-			logPending = false;
+			statsTimer->stop();
+			statsPending = false;
 		}
 
-		tryLog();
+		tryStats();
 	}
 
-	void logTimer_timeout()
+	void statsTimer_timeout()
 	{
-		if(logPending)
-		{
-			logPending = false;
-			tryLog();
-		}
+		if(statsPending)
+			tryStats();
 	}
 
 	void rpc_in_readyRead()
