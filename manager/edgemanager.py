@@ -1,9 +1,13 @@
+import zmq
+import app
 import rpc
-import lib
 
-in_cmd_spec = 'tcp://' + lib.controller_host + ':10100'
+app.init('/etc/scaledemo.conf')
 
-logger = lib.logger
+rpc_in_spec = app.config.get('edgemanager', 'rpc_in_spec')
+logger = app.logger
+zmq_context = zmq.Context()
+rpc_server = None
 
 def method_handler(method, args, data):
 	if len(args) > 0:
@@ -15,19 +19,15 @@ def method_handler(method, args, data):
 	else:
 		raise rpc.CallError('method-not-found')
 
-server = None
-route_spec = 'inproc://server-rpc'
-
-def server_worker(c):
-	global server
-	server = rpc.RpcServer([route_spec], context=lib.zmq_context)
+def rpc_server_worker(c):
+	global rpc_server
+	rpc_server = rpc.RpcServer([rpc_in_spec], context=zmq_context)
 	c.ready()
-	server.run(method_handler, None)
+	rpc_server.run(method_handler, None)
 
-lib.spawn(server_worker, wait=True)
-lib.spawn(lib.server_route_worker, args=(in_cmd_spec, route_spec, lib.instance_id))
+app.spawn(rpc_server_worker, wait=True)
 
-lib.wait_for_quit()
+app.wait_for_quit()
 
-server.stop()
-lib.zmq_context.term()
+rpc_server.stop()
+zmq_context.term()
