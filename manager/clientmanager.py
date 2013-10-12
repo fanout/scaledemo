@@ -224,6 +224,7 @@ class ClientSession(object):
 		m['id'] = self.req_id
 		m['method'] = 'GET'
 		m['uri'] = self.manager.base_uri + path
+		logger.debug('%s OUT: %s' % (self.name, m))
 		self.manager.send(m)
 
 	def set_timeout(self, timeout):
@@ -246,6 +247,7 @@ class ClientSession(object):
 				self.exp = None
 
 		if m is not None:
+			logger.debug('%s IN: %s' % (self.name, m))
 			if self.state != WaitingForInitialResponse and self.state != WaitingForResponse:
 				logger.info('%s: received unexpected response: %s' % (self.name, m))
 				assert(0)

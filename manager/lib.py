@@ -177,4 +177,4 @@ def ping(instance_id):
 	client.call('ping', {'to': instance_id})
 
 def start(instance_id, count):
-	client.call('setup-clients', {'to': instance_id, 'base-uri': 'http://localhost:7999/headline', 'count': count})
+	client.call('setup-clients', {'to': instance_id, 'base-uri': 'http://headline', 'count': count})
