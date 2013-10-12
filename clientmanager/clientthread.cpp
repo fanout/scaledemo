@@ -58,7 +58,7 @@ public:
 	}
 
 public slots:
-	void setupClients(const QUrl &_baseUri, int count)
+	void setupClients(const QUrl &_baseUri, int count, const QString &connectHost)
 	{
 		bool baseUriChanged = false;
 		if(baseUri != _baseUri)
@@ -113,7 +113,7 @@ public slots:
 			clients += c;
 			connect(c, SIGNAL(started(int, const QString &)), SLOT(client_started(int, const QString &)));
 			connect(c, SIGNAL(received(int, const QString &)), SLOT(client_received(int, const QString &)));
-			c->start(baseUri, n / 10);
+			c->start(baseUri, connectHost, n / 10);
 		}
 
 		tryStats();
@@ -246,9 +246,9 @@ void ClientThread::stop()
 	quit();
 }
 
-void ClientThread::setupClients(const QUrl &baseUri, int count)
+void ClientThread::setupClients(const QUrl &baseUri, int count, const QString &connectHost)
 {
-	QMetaObject::invokeMethod(worker, "setupClients", Qt::QueuedConnection, Q_ARG(QUrl, baseUri), Q_ARG(int, count));
+	QMetaObject::invokeMethod(worker, "setupClients", Qt::QueuedConnection, Q_ARG(QUrl, baseUri), Q_ARG(int, count), Q_ARG(QString, connectHost));
 }
 
 void ClientThread::worker_statsChanged(const ClientThread::Stats &stats)

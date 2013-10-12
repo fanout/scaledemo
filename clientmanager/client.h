@@ -37,7 +37,7 @@ public:
 	int receivedId() const;
 	QString receivedBody() const;
 
-	void start(const QUrl &baseUri, int startDelay = 0);
+	void start(const QUrl &baseUri, const QString &connectHost, int startDelay = 0);
 
 signals:
 	void started(int id, const QString &body);

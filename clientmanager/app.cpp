@@ -221,7 +221,7 @@ public:
 		log_info("started");
 	}
 
-	void setupClients(const QUrl &_baseUri, int count)
+	void setupClients(const QUrl &_baseUri, int count, const QString &connectHost)
 	{
 		if(baseUri == _baseUri && count == clientCount)
 			return; // no change
@@ -239,7 +239,7 @@ public:
 				++threadClientCount;
 
 			log_info("setting up thread %d with %d clients", n, threadClientCount);
-			c->setupClients(baseUri, threadClientCount);
+			c->setupClients(baseUri, threadClientCount, connectHost);
 		}
 	}
 
@@ -397,7 +397,11 @@ private slots:
 		}
 		else if(method == "setup-clients")
 		{
-			setupClients(QUrl::fromEncoded(args["base-uri"].toByteArray(), QUrl::StrictMode), args["count"].toInt());
+			QUrl argBaseUri = QUrl::fromEncoded(args["base-uri"].toByteArray(), QUrl::StrictMode);
+			int argCount = args["count"].toInt();
+			QString argConnectHost = QString::fromUtf8(args.value("connect-host").toByteArray());
+
+			setupClients(argBaseUri, argCount, argConnectHost);
 
 			QVariantHash resp;
 			resp["id"] = id;

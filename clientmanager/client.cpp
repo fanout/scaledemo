@@ -33,6 +33,7 @@ public:
 	Client *q;
 	QString name;
 	QUrl baseUri;
+	QString connectHost;
 	QHostAddress connectAddr;
 	HttpRequest *req;
 	QTimer *t;
@@ -78,7 +79,11 @@ public:
 	{
 		if(connectAddr.isNull())
 		{
-			QHostInfo info = QHostInfo::fromName(baseUri.host());
+			QHostInfo info;
+			if(!connectHost.isEmpty())
+				info = QHostInfo::fromName(connectHost);
+			else
+				info = QHostInfo::fromName(baseUri.host());
 			if(info.error() != QHostInfo::NoError)
 			{
 				req_error();
@@ -239,9 +244,10 @@ QString Client::receivedBody() const
 		return QString();
 }
 
-void Client::start(const QUrl &baseUri, int startDelay)
+void Client::start(const QUrl &baseUri, const QString &connectHost, int startDelay)
 {
 	d->baseUri = baseUri;
+	d->connectHost = connectHost;
 	d->start(startDelay);
 }
 

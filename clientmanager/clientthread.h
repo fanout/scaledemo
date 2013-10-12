@@ -56,7 +56,7 @@ public:
 	void start();
 	void stop();
 
-	void setupClients(const QUrl &baseUri, int count);
+	void setupClients(const QUrl &baseUri, int count, const QString &connectHost);
 
 signals:
 	void statsChanged(const ClientThread::Stats &stats);
