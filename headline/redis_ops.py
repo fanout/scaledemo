@@ -58,3 +58,8 @@ class RedisOps(object):
 					return (id, prev_id)
 				except redis.WatchError:
 					continue
+
+	# return list of specs
+	def proxies_get_all(self):
+		r = self._get_redis()
+		return r.smembers('proxies')

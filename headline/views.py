@@ -1,6 +1,3 @@
-from base64 import b64encode, b64decode
-import datetime
-import copy
 import json
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponseNotAllowed
@@ -87,6 +84,7 @@ def value(req):
 		hr_headers = dict()
 		hr_headers['Content-Type'] = 'application/json'
 		hr_body = json.dumps(out) + '\n'
+		pub.set_zmq_specs(db.proxies_get_all())
 		pub.publish(grip_prefix + 'value', str(id), str(prev_id), hr_headers, hr_body)
 
 		return HttpResponse(json.dumps(out) + '\n', content_type='application/json')
