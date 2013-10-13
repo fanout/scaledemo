@@ -56,8 +56,9 @@ def value(req):
 			out['body'] = body
 			return HttpResponse(json.dumps(out) + '\n', content_type='application/json')
 		else:
-			if not grip.is_proxied(req, grip_proxies):
-				return HttpResponse('Not Implemented\n', status=501)
+			# don't check for grip sig since we're using the dynamic zmq spec list
+			#if not grip.is_proxied(req, grip_proxies):
+			#	return HttpResponse('Not Implemented\n', status=501)
 
 			channel = gripcontrol.Channel(grip_prefix + 'value', id)
 			theaders = dict()
