@@ -86,13 +86,14 @@ def _spawn_run(target, c, args):
 		if e.errno != zmq.ETERM:
 			raise
 
-def spawn(target, args=None, wait=False):
+def spawn(target, args=None, wait=False, daemon=False):
 	if wait:
 		c = threading.Condition()
 		c.acquire()
 	else:
 		c = None
 	thread = threading.Thread(target=_spawn_run, args=(target, c, args))
+	thread.daemon = daemon
 	thread.start()
 	if wait:
 		c.wait()
