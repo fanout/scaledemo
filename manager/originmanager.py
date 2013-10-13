@@ -20,10 +20,13 @@ def method_handler(method, args, data):
 		return True
 	elif method == 'set-grip-proxies':
 		specs = args['specs']
-		db.delete('proxies.tmp')
-		for spec in specs:
-			db.sadd('proxies.tmp', spec)
-		db.rename('proxies.tmp', 'proxies')
+		if len(specs) > 0:
+			db.delete('proxies.tmp')
+			for spec in specs:
+				db.sadd('proxies.tmp', spec)
+			db.rename('proxies.tmp', 'proxies')
+		else:
+			db.delete('proxies')
 	else:
 		raise rpc.CallError('method-not-found')
 

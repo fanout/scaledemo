@@ -20,6 +20,7 @@ client_capacity = int(app.config.get('instancemanager', 'client_capacity'))
 default_region = app.config.get('instancemanager', 'region')
 aws_access_key = app.config.get('instancemanager', 'aws_access_key')
 aws_secret_key = app.config.get('instancemanager', 'aws_secret_key')
+origin_host = app.config.get('instancemanager', 'origin_host')
 
 def get_boto_ec2_connection(region):
 	return ec2.connect_to_region(region, aws_access_key_id=aws_access_key,
@@ -166,7 +167,7 @@ def nodemanage_worker(c):
 			if not node.get('private-addr'):
 				instance = get_node(node['region'], node['instance-id'])
 				if instance.state == 'running':
-					logger.info('node %s running' % id)
+					logger.info('node %s running, %s' % (id, instance.ip_address))
 					node['private-addr'] = instance.private_ip_address
 					node['public-addr'] = instance.ip_address
 					instance.add_tag('Name', id)
@@ -222,13 +223,15 @@ def nodemanage_worker(c):
 			if node.get('count-cur') != node_client_count:
 				enode = nodes[node['edge']]
 				client = rpc.RpcClient(['tcp://%s:10100' % node['public-addr']], context=zmq_context)
+				client.sock.linger = 0
 				args = dict()
 				args['base-uri'] = base_uri
 				args['count'] = node_client_count
 				args['connect-host'] = enode['public-addr']
 				client.call('setup-clients', args)
+				client.close()
 				node['count-cur'] = node_client_count
-				db.node_updated(id, node)
+				db.node_update(id, node)
 				changed = True
 				break
 		if changed:
@@ -236,11 +239,34 @@ def nodemanage_worker(c):
 
 		time.sleep(5)
 
+def setproxies_worker(c):
+	last_specs = list()
+	while True:
+		specs = list()	
+		nodes = db.node_get_all()
+		for id, node in nodes.iteritems():
+			if node['type'] == 'edge':
+				addr = node.get('public-addr')
+				if addr:
+					specs.append('tcp://%s:5560' % addr)
+		if last_specs != specs:
+			logger.info('sending proxy list to origin')
+			client = rpc.RpcClient(['tcp://%s:10100' % origin_host], context=zmq_context)
+			client.sock.linger = 0
+			args = dict()
+			args['specs'] = specs
+			client.call('set-grip-proxies', args)
+			client.close()
+			last_specs = specs
+
+		time.sleep(2)
+
 def pinger_worker(c):
 	pass
 
 app.spawn(rpc_server_worker, wait=True)
 app.spawn(nodemanage_worker, daemon=True)
+app.spawn(setproxies_worker, daemon=True)
 
 app.wait_for_quit()
 

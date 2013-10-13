@@ -55,6 +55,12 @@ class RpcClient(object):
 			for spec in self.specs:
 				self.sock.connect(spec)
 
+	def close(self):
+		if self.sock is not None:
+			self.sock.linger = 0
+			self.sock.close()
+			self.sock = None
+
 	def call(self, method, args=dict()):
 		req = dict()
 		req['id'] = str(uuid.uuid4())
