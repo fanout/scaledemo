@@ -206,6 +206,7 @@ def nodemanage_worker(c):
 				client_up, client_running, client_have, client_need))
 			need_status = False
 
+		# FIXME: balance removal
 		remove_id = None
 		if edge_have > edge_need:
 			for id, node in nodes.iteritems():
@@ -327,6 +328,7 @@ def nodemanage_worker(c):
 				continue
 			node_client_count = node['count']
 			if node.get('count-cur') != node_client_count:
+				logger.info('applying settings to %s' % id)
 				enode = nodes[node['edge']]
 				client = rpc.RpcClient(['tcp://%s:10100' % node['public-addr']], context=zmq_context)
 				client.sock.linger = 0
