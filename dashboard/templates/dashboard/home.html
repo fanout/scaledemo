@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>FAN</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
+        <link href="/static/css/fanout.css" rel="stylesheet">
+        <script src="/static/js/css_browser_selector.js"></script>
+        <link href="/static/css/fanout.chrome.css" rel="stylesheet">
+    </head>
+
+	<body>
+		<div class="nav">
+			<div class="wrap">
+				<a class="logo pull-left" href="#"><img src="/static/img/logo.png"></a>
+				<div class="logged-out pull-right">
+					<a href="#">Login</a>
+				</div> <!-- logged-out -->
+				<div class="logged-in pull-right">
+					<p><div id="user">Welcome, <a href="#">Username</a></div> | <a href="#">SETTINGS</a></p>
+				</div> <!-- logged-in -->
+			</div> <!-- wrap -->
+		</div> <!-- nav -->
+		<div class="container">
+			<div class="wrap">
+				<div class="capacity">
+					<div id="input-border"></div>
+					<div class="capacity-input">
+						<input type="text" id="inputCapacity" placeholder="1,000,000">
+						<a class="capacity-btn"></a>
+					</div> <!-- capacity-input -->
+					<p>Enter the number of desired clients to support</p>
+				</div> <!-- capacity -->
+				<div class="space-row">
+					<div class="space-left">
+						<div class="Servers">
+							<div class="numServ">
+								<p class="nServ">153</p><p class="aServ">/190</p>
+								<div id="edgeServ" max="190" value="153"></div>
+								<p>NUMBER OF</p>
+								<p class="nameServ">EDGE SERVERS</p>
+							</div>
+							<div class="numServ">
+								<p class="nServ">102</p><p class="aServ">/190</p>
+								<div id="clientServ" max="190" value="102"></div>
+								<p>NUMBER OF</p>
+								<p class="nameServ">CLIENT SERVERS</p>
+							</div>
+						</div>
+					</div> <!-- space-left -->
+					<div class="vertical-separator1"></div>
+					<div class="space-right">
+						<h2>Ping times </h2>
+						<h2 class="sub-caption">(in miliseconds, of all servers)</h2>
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">MINIMUM</p>
+							<p class="hbar-value">327</p></div>
+							<div class="hbar" id="minimum" max="1000" value="327"></div>
+						</div> <!-- horizontal-bar -->
+						
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">MAXIMUM</p>
+							<p class="hbar-value">849</p></div>
+							<div class="hbar" id="maximum" max="1000" value="849"></div>
+						</div> <!-- horizontal-bar -->
+						
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">AVERAGE</p>
+							<p class="hbar-value">651</p></div>
+							<div class="hbar" id="average" max="1000" value="651"></div>
+						</div> <!-- horizontal-bar -->
+					</div> <!-- space-right -->
+					<div class="horizontal-separator"></div>
+				</div> <!-- space-row -->
+				
+				<div class="space-row second-row">
+					<div class="space-left">
+					<div class="lastMsgR">
+							<p style="margin:0;">LAST RECEIVED MESSAGE:</p>
+							<p class="Message">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+								Suspendisse ac risus tristique, dictum dui nec, dictum nisi. Nulla
+								tristique eros leo, ac pulvinar arcu ullamcorper non.</p>
+							<textarea rows="6" cols="65" id="SndMessage" placeholder="Enter a message to all of the clients"></textarea>
+							<div id="SndMsgBtn">SEND</div>
+						</div>
+					</div> <!-- space-left -->
+					<div class="vertical-separator2"></div>
+					<div class="space-right">
+						<div class="lastMsgR">
+							<p>NUMBER OF CLIENTS THAT HAVE RECEIVED THE LAST MESSAGE</p>
+							<p class="numRC">427,385</p>
+							<div class="horizontal-separator"></div>
+						</div>
+						
+						<h2>Delivery times </h2>
+						<h2 class="sub-caption">(in miliseconds)</h2>
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">MINIMUM</p>
+							<p class="hbar-value">327</p></div>
+							<div class="hbar" id="DtMinimum" max="1000" value="327"></div>
+						</div> <!-- horizontal-bar -->
+						
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">MAXIMUM</p>
+							<p class="hbar-value">849</p></div>
+							<div class="hbar" id="DtMaximum" max="1000" value="849"></div>
+						</div> <!-- horizontal-bar -->
+						
+						<div class="horizontal-bar">
+							<div class="hcap"><p class="hbar-caption">AVERAGE</p>
+							<p class="hbar-value">651</p></div>
+							<div class="hbar" id="DtAverage" max="1000" value="651"></div>
+						</div> <!-- horizontal-bar -->
+						
+					</div> <!-- space-right -->
+					<div class="horizontal-separator"></div>
+				</div> <!-- space-row -->
+				
+				<div class="space-row">
+					<div class="wrap">
+						<textarea rows="15" cols="225"><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head prefix="og: http://ogp.me/ns# website: http://ogp.me/ns/website#">
+	<title>Fanout</title>
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="http://fanout.io/" />
+	<meta property="og:title" content="Fanout" />
+	<meta property="og:image" content="http://fanout.io/static/image/fanout_icon.png" />
+	<meta property="og:description" content="Fanout is a cloud service that makes it easy to push data to browsers and apps." />
+	<meta name="description" content="Fanout is a cloud service that makes it easy to push data to browsers and apps." />
+	<link href="/static/style/style.css" rel="stylesheet" type="text/css" />
+	<script src="//use.edgefonts.net/open-sans:n3,n4,n7.js"></script>
+	<link href="/static/image/favicon.png" rel="icon" type="image/png" />
+	<script src="/static/style/jquery-1.7.1.min.js" type="text/javascript"></script>
+	<script src="/static/style/jquery.placeholder.min.js" type="text/javascript"></script>
+	<script src="/static/style/fanout.js" type="text/javascript"></script>
+	<script type="text/javascript">
+      var _gaq = _gaq || [];
+      _gaq.push(['_setAccount', 'UA-37668314-1']);
+      _gaq.push(['_trackPageview']);
+      (function() {
+        var ga = document.createElement('script');
+ ga.type = 'text/javascript'; ga.async = true;
+        ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+        var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+      })();
+    </script>
+</head>
+<body></textarea>
+					</div> <!-- wrap -->
+				</div> <!-- space-row -->
+				
+			</div> <!-- wrap -->
+		</div> <!-- container -->
+		
+		<script src="/static/js/jquery-1.9.1.js"></script>
+		<script src="/static/js/jquery-ui-progress.js"></script>
+		<script src="/static/js/jCProgress-1.0.3.js"></script>
+		
+		<script>
+			$(document).ready(function(){
+				$('#minimum').progressbar({
+					max: 1000,
+					value: 327
+				});
+				
+				$('#maximum').progressbar({
+					max: 1000,
+					value: 849
+				});
+				
+				$('#average').progressbar({
+					max: 1000,
+					value: 651
+				});
+				
+				
+				$('#DtMinimum').progressbar({
+					max: 1000,
+					value: 327
+				});
+				
+				$('#DtMaximum').progressbar({
+					max: 1000,
+					value: 849
+				});
+				
+				$('#DtAverage').progressbar({
+					max: 1000,
+					value: 651
+				});
+				
+				var edgeServVal = 100 * $('#edgeServ').attr('value') / $('#edgeServ').attr('max');
+				$('#edgeServ').cprogress({
+					percent: 10,
+					img1: 'img/circle_bar.png',
+					img2: 'img/circle_bar_full.png',
+					limit: edgeServVal,
+					speed: 1,
+					PIStep: 0.1,
+					showPercent: false
+				});
+				
+				var clientServVal = 100 * $('#edgeServ').attr('value') / $('#edgeServ').attr('max');
+				$('#clientServ').cprogress({
+					percent: 10,
+					img1: 'img/circle_bar.png',
+					img2: 'img/circle_bar_full.png',
+					limit: edgeServVal,
+					speed: 1,
+					PIStep: 0.1,
+					showPercent: false
+				});
+			});
+		</script>
+	</body>
+</html>

@@ -1,0 +1,434 @@
+@font-face {
+	font-family: "Lucida Console";
+	src: url('../fonts/lucon.ttf');
+}
+
+body {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	background: url('../img/background.jpg') repeat;
+	color: #808080;
+	font-size: 100%;
+	font-family: "Open Sans"
+}
+
+a {
+	color: #808080;
+	text-decoration: none;
+}
+
+textarea {
+	font-family: "Ludica Console";
+	font-size: 0.813em;
+	color: #939496;
+	border: none;
+	background-color: #222222;
+	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
+	-moz-box-shadow:    0px 1px 0px rgba(58, 58, 58, 1);
+	box-shadow:         0px 1px 0px rgba(58, 58, 58, 1);
+	padding: 10px;
+}
+
+.wrap {
+	min-width: 26.25em;
+	max-width: 72.5em;
+	position: relative;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.container {
+	width: 100%;
+	min-height: 31.25em;
+	position: relative;
+	margin: 0 auto;
+	overflow: hidden;
+	margin-top: 4.438em;
+}
+
+.container .wrap {
+	min-height: 18.75em;
+}
+
+.pull-left {
+	float: left;
+}
+
+.pull-right {
+	float: right;
+}
+
+.nav {
+	width: 100%;
+	height: 4.438em;
+	background: url('../img/menu_background.jpg') top left repeat;
+	position: fixed;
+	top: 0;
+	left: 0;
+	overflow: hidden;
+	z-index: 999;
+}
+
+.nav div, p, a {
+	display: inline-block;
+}
+
+.nav .wrap {
+	display: block;
+	margin: 0 auto;
+}
+
+.nav a.logo {
+	display: block;
+	margin: 0;
+}
+
+.nav .logo img {
+	height: 4.375em
+}
+
+.nav .logged-out {
+	display: none;
+}
+
+.nav .logged-in, .nav-logged-out {
+	margin-top: 0.313em;
+	font-weight: 600;
+}
+
+.nav .logged-in #user, .nav-logged-out #user{
+	font-weight: 500;
+}
+
+.capacity {
+	width: 22.5em;
+	position: relative;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.capacity #input-border {
+	display: inline-block;
+	width: 22.375em;
+	height: 1.125em;
+	border: groove 1px #757575;
+	border-top: none;
+	margin-bottom: -4.5em;
+	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
+	-moz-box-shadow:    0px 1px 0px rgba(58, 58, 58, 1);
+	box-shadow:         0px 1px 0px rgba(58, 58, 58, 1);
+}
+
+.capacity .capacity-input {
+	position: relative;
+	margin: 0 auto;
+	overflow: hidden;
+}
+
+.capacity .capacity-input #inputCapacity {
+	display: inline-block;
+	position: relative;
+	width: 5.9em;
+	margin: 0;
+	margin-left: 0.31em;
+	overflow: hidden;
+	outline: none;
+	background-color: transparent;
+	border: none;
+	font-family: "Open Sans Light";
+	font-size: 3em;
+	color: #808080;
+}
+
+.capacity .capacity-input .capacity-btn {
+	display: inline-block;
+	position: relative;
+	width: 1.625em;
+	height: 1.625em;
+	background: url('../img/capacity_btn.png') center center no-repeat;
+	margin: 0;
+	margin-right: 1.188em;
+	margin-left: auto;
+	margin-top: 1.25em;
+	margin-bottom: 1.188em;
+	float: right;
+	-webkit-border-radius: 0.125em;
+	-moz-border-radius: 0.125em;
+	border-radius: 0.125em;
+	cursor: pointer;
+}
+
+.capacity p {
+	position: relative;
+	width: 100%;
+	margin: 0;
+	text-align: center;
+	font-family: "Open Sans";
+	font-weight: 400;
+	font-size: 0.938em;
+	font-style: italic;
+}
+
+.space-row {
+	margin: 0;
+	margin-top: 2.375em;
+}
+
+.space-row h2 {
+	font-size: 1.313em;
+	font-weight: 600;
+	line-height: 1;
+	display: inline;
+	margin-left: 1.563em;
+}
+
+.space-row h2.sub-caption {
+	font-weight: 300;
+	margin: 0;
+}
+
+.space-left, .space-right {
+	width: 35.625em;
+	margin: 0;
+	position: relative;
+}
+
+.space-left {
+	float: left;
+}
+
+.space-right {
+	float: right;
+	margin-top: -17.5em;
+}
+
+.second-row .space-right {
+	float: right;
+	margin-top: -23.6em;
+}
+
+.space-right .horizontal-separator {
+	position: relative;
+	margin-top: 6em;
+	margin-left: 2.167em;
+}
+
+.horizontal-separator {
+	margin: 0;
+	padding: 0;
+	border: none;
+	border-bottom: groove 1px #757575;
+	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
+	-moz-box-shadow:    0px 1px 0px rgba(58, 58, 58, 1);
+	box-shadow:         0px 1px 0px rgba(58, 58, 58, 1);
+	margin-top: 2.813em;
+}
+
+.vertical-separator1 {
+	width: 2.063em;
+	height: 17.5em;
+	background: url('../img/vertical_separator.png');
+	position: relative;
+	margin: 0 auto;
+}
+
+.vertical-separator2 {
+	width: 2.063em;
+	height: 23.333em;
+	background: url('../img/vertical_separator2.png');
+	position: relative;
+	margin: 0 auto;
+}
+
+.Servers {
+	margin: 0 auto;
+	overflow: hidden;
+	margin-left: 2.813em;
+}
+
+.numServ {
+	width: 15em;
+	height: 16.75em;
+	float: left;
+	padding-left: 1.2em;
+	margin-top: 3em;
+}
+
+.numServ p {
+	display: block;
+	width: 100%;
+	text-align: center;
+	margin: 0;
+}
+
+.numServ p.nameServ {
+	font-weight: 600;
+}
+
+.numServ p.nServ {
+	position: relative;
+	display: inline;
+	color: white;
+	font-size: 2em;
+	font-weight: 600;
+	top: 0.70em;
+	left: 1.9em;
+}
+
+.numServ p.aServ {
+	position: relative;
+	display: inline;
+	font-size: 1.5em;
+	margin-left: 0.04em;
+	top: 0.9em;
+	left: 2.7em;
+}
+
+.horizontal-bar {
+	margin-left: 1.563em;
+	margin-top: 3.125em;
+	width: 33.75em;
+	height: 2.188em;
+	display: block;
+}
+
+.horizontal-bar .hcap {
+	min-height: 1.75em;
+}
+
+.horizontal-bar p.hbar-caption {
+	font-size: 0.875em;
+	font-weight: 600;
+	line-height: 1;
+	float: left;
+	margin: 0;
+}
+
+.horizontal-bar p.hbar-value {
+	font-size: 1.875em;
+	font-weight: 700;
+	line-height: 1;
+	color: white;
+	float: right;
+	margin: 0;
+	margin-top: -0.47em;
+}
+
+.horizontal-bar .hbar {
+	position: relative;
+	width: 33.75em;
+	height: 0.688em;
+	border: none;
+	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
+	-moz-box-shadow:    0px 1px 0px rgba(58, 58, 58, 1);
+	box-shadow:         0px 1px 0px rgba(58, 58, 58, 1);
+}
+
+.horizontal-bar .ui-progressbar {
+	background-color: #222222;
+}
+
+.horizontal-bar .ui-progressbar-value {
+	background-color: #47C0B1;
+	height: 0.688em;
+}
+
+.lastMsgR {
+	overflow: hidden;
+	margin: 0;
+	padding: 0;
+	margin-top: -1em;
+	margin-bottom: 1em;
+}
+
+.lastMsgR p {
+	font-size: 1.125em;
+	font-weight: 600;
+	color: white;
+	float: left;
+	max-width: 16.563em;
+	margin-left: 2.167em;
+}
+
+.lastMsgR p.numRC {
+	font-size: 3em;
+	font-weight: 300;
+	color: #47BFB3;
+	float: right;
+	margin: 0;
+	margin-top: 0.2em;
+}
+
+.lastMsgR p.Message {
+	display: block;
+	font-size: 0.938em;
+	color: #7c7d7f;
+	margin: 0;
+	margin-top: 1.467em;
+	margin-bottom: 2.8em;
+	width: 37em;
+	max-width: 37em;
+}
+
+#SndMessage {
+	font-family: "Open Sans";
+	font-size: 0.938em;
+	font-style: italic;
+}
+
+#SndMsgBtn {
+	font-size: 0.867em;
+	font-weight: 600;
+	text-align: center;
+	vertical-align: middle;
+	padding-top: 0.9em;
+	margin-left: 0.2em;
+	width: 6.923em;
+	height: 2.154em;
+	background-color: #47c0b1;
+	color: #164b45;
+	-webkit-border-radius: 2px;
+	-moz-border-radius: 2px;
+	border-radius: 2px;
+}
+
+@media (max-width: 1160px) {
+	body {
+		font-size: 90%;
+	}
+	
+	.Servers {
+		font-size: 80%;
+	}
+}
+
+@media (max-width: 1000px){
+	.space-right, .space-left {
+		font-size: 60%;
+	}
+}
+
+@media (max-width: 640px){
+	.space-right, .space-left {
+		font-size: 55%;
+	}
+}
+
+@media (max-width: 560px){
+	.space-right, .space-left {
+		font-size: 50%;
+	}
+}
+
+@media (max-width: 520px){
+	.space-right, .space-left {
+		font-size: 40%;
+	}
+}
+
+@media (max-width: 395px) {
+	body {
+		font-size: 70%;
+	}
+}

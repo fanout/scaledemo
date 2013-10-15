@@ -1,0 +1,46 @@
+.webkit .Servers {
+	position: relative;
+	margin: 0 auto;
+	overflow: hidden;
+	margin-left: 2.813em;
+}
+
+.webkit .numServ {
+	width: 15em;
+	height: 16.75em;
+	position: relative;
+	float: left;
+	padding-left: 1.2em;
+	margin-top: -2em;
+}
+
+.webkit .numServ p {
+	display: block;
+	width: 100%;
+	text-align: center;
+	margin: 0;
+	margin-left: -1.6em;
+}
+
+.webkit .numServ p.nameServ {
+	font-weight: 600;
+}
+
+.webkit .numServ p.nServ {
+	position: relative;
+	display: inline;
+	color: white;
+	font-size: 2em;
+	font-weight: 600;
+	top: 3.50em;
+	left: 2.7em;
+}
+
+.webkit .numServ p.aServ {
+	position: relative;
+	display: inline;
+	font-size: 1.5em;
+	margin-left: 0.04em;
+	top: 4.7em;
+	left: 3.7em;
+}
