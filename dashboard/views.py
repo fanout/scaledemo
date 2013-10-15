@@ -8,6 +8,8 @@ db = redis_ops.RedisOps()
 
 def _get_stats():
 	data = db.get_stats_data()
+	if data is None:
+		data = dict()
 	out = dict()
 	out['capacity'] = data.get('capacity', 0)
 	out['edge-up'] = data.get('edge-up', 0)
