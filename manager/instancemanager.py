@@ -1,4 +1,5 @@
 import time
+import copy
 import urllib
 import urllib2
 import zmq
@@ -101,6 +102,38 @@ def rpc_server_worker(c):
 	c.ready()
 	rpc_server.run(method_handler, data)
 
+# sort type (edge first), then number
+def compare_key(a, b):
+	at = a.find('-')
+	atype = a[:at]
+	anum = int(a[at + 1:])
+	at = b.find('-')
+	btype = b[:at]
+	bnum = int(b[at + 1:])
+	if atype == 'edge' and btype != 'edge':
+		return -1
+	elif btype == 'edge' and atype != 'edge':
+		return 1
+	elif anum < bnum:
+		return -1
+	elif anum > bnum:
+		return 1
+	else:
+		return 0
+
+def order_keys(keys):
+	tmp = copy.copy(keys)
+	out = list()
+	while len(tmp) > 0:
+		lowest = None
+		for n, k in enumerate(tmp):
+			if lowest is None or compare_key(k, lowest) < 0:
+				lowest = k
+				lowest_at = n
+		del tmp[lowest_at]
+		out.append(lowest)
+	return out
+
 def pick_region(ntype, nodes):
 	counts = dict()
 	for region in regions:
@@ -136,7 +169,14 @@ def pick_edge(cregion, nodes):
 		r = None
 		rmin = None
 		assert(len(regions) > 0)
-		for region in regions:
+		# check regions starting with the next from current
+		for n, region in enumerate(regions):
+			if region == cregion:
+				pos = (n + 1) % len(regions)
+				break
+		lregions = regions[pos:]
+		lregions.extend(regions[:pos])
+		for region in lregions:
 			if region not in counts:
 				continue
 			if rmin is None or counts[region] < rmin:
@@ -144,7 +184,8 @@ def pick_edge(cregion, nodes):
 				rmin = counts[region]
 
 		# are there any free edges in that region?
-		for id, node in nodes.iteritems():
+		for id in order_keys(nodes.keys()):
+			node = nodes[id]
 			if node['type'] != 'edge' or node['region'] != r:
 				continue
 			in_use = False
@@ -298,8 +339,8 @@ def nodemanage_worker(c):
 			for id, node in nodes.iteritems():
 				if node['type'] == 'client':
 					num_client_nodes += 1
-			for n, i in enumerate(nodes.iteritems()):
-				id, node = i
+			for n, id in enumerate(order_keys(nodes.keys())):
+				node = nodes[id]
 				if node['type'] != 'client':
 					continue
 				changed = False
@@ -314,9 +355,9 @@ def nodemanage_worker(c):
 					eid = pick_edge(node['region'], nodes)
 					if eid:
 						node['edge'] = eid
+						logger.info('mapping %s (%s) -> %s (%s)' % (id, node['region'], eid, nodes[eid]['region']))
 						changed = True
 				if changed:
-					logger.info('mapping %s -> %s' % (id, node['edge']))
 					db.node_update(id, node)
 
 		# apply client settings
@@ -373,49 +414,53 @@ def nodemanage_worker(c):
 			if 'last-ping' not in origin_info or now >= origin_info['last-ping'] + (5 * 1000):
 				logger.debug('pinging %s' % origin_host)
 				origin_info['last-ping'] = now
+				db.set_origin_info(origin_info)
 				changed = True
 				client = rpc.RpcClient(['tcp://%s:10100' % origin_host], context=zmq_context)
 				client.sock.linger = 0
+				success = False
 				try:
 					client.call('ping')
 					start_time = int(time.time() * 1000)
 					client.call('ping')
 					end_time = int(time.time() * 1000)
+					success = True
 				except:
 					logger.debug('ping failed')
-					client.close()
-					break
 				client.close()
-				origin_info['ping'] = end_time - start_time
-				db.set_origin_info(origin_info)
-				logger.debug('ping time: %d' % origin_info['ping'])
+				if success:
+					origin_info['ping'] = end_time - start_time
+					db.set_origin_info(origin_info)
+					logger.debug('ping time: %d' % origin_info['ping'])
 		elif oldest_id:
 			id = oldest_id
 			node = nodes[id]
 			if 'last-ping' not in node or now >= node['last-ping'] + (5 * 1000):
 				logger.debug('pinging %s' % id)
 				node['last-ping'] = now
+				db.node_update(id, node)
 				changed = True
 				client = rpc.RpcClient(['tcp://%s:10100' % node['public-addr']], context=zmq_context)
 				client.sock.linger = 0
+				success = False
 				try:
 					client.call('ping')
 					start_time = int(time.time() * 1000)
 					ret = client.call('ping')
 					end_time = int(time.time() * 1000)
+					success = True
 				except:
 					logger.debug('ping failed')
-					client.close()
-					break
 				client.close()
-				had_ping = 'ping' in node
-				node['ping'] = end_time - start_time
-				if node['type'] == 'client':
-					node['manager-id'] = ret['id']
-				db.node_update(id, node)
-				logger.debug('ping time: %d' % node['ping'])
-				if not had_ping:
-					need_status = True
+				if success:
+					had_ping = 'ping' in node
+					node['ping'] = end_time - start_time
+					if node['type'] == 'client':
+						node['manager-id'] = ret['id']
+					db.node_update(id, node)
+					logger.debug('ping time: %d' % node['ping'])
+					if not had_ping:
+						need_status = True
 		if changed:
 			continue
 
@@ -567,9 +612,12 @@ def nodestats_worker(c):
 					pub_node = node
 					break
 
-			latency_adjust = 0
+			if 'latency' in m:
+				latency = m['latency']
+			else:
+				latency = 0
 			if pub_node is not None and 'ping' in pub_node:
-				latency_adjust = pub_node['ping'] / 2
+				latency += pub_node['ping'] / 2
 
 			s['total'] = m['total']
 			s['started'] = m['started']
@@ -580,10 +628,10 @@ def nodestats_worker(c):
 				s['cur-id'] = m['cur-id']
 			now = int(time.time() * 1000)
 			if m['received'] > had_received:
-				s['rtimes'].append((now, m['received'] - had_received, m['latency'] + latency_adjust))
+				s['rtimes'].append((now, m['received'] - had_received, latency))
 			elif m['received'] < had_received:
 				s['rtimes'] = list()
-				s['rtimes'].append((now, m['received'], m['latency'] + latency_adjust))
+				s['rtimes'].append((now, m['received'], latency))
 			updated = True
 
 		if updated:
