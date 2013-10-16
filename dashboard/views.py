@@ -44,18 +44,18 @@ def _get_stats():
 	if 'id' in data:
 		out['id'] = data['id']
 	out['capacity'] = data.get('capacity', 0)
-	out['edge-up'] = data.get('edge-up', 0)
-	out['edge-total'] = data.get('edge-total', 0)
-	out['client-up'] = data.get('client-up', 0)
-	out['client-total'] = data.get('client-total', 0)
-	out['ping-min'] = data.get('ping-min', 0)
-	out['ping-max'] = data.get('ping-max', 0)
-	out['ping-avg'] = data.get('ping-avg', 0)
+	out['edge_up'] = data.get('edge-up', 0)
+	out['edge_total'] = data.get('edge-total', 0)
+	out['client_up'] = data.get('client-up', 0)
+	out['client_total'] = data.get('client-total', 0)
+	out['ping_min'] = data.get('ping-min', 0)
+	out['ping_max'] = data.get('ping-max', 0)
+	out['ping_avg'] = data.get('ping-avg', 0)
 	out['received'] = data.get('received', 0)
-	out['receive-min'] = data.get('receive-min', 0)
-	out['receive-max'] = data.get('receive-max', 0)
-	out['receive-avg'] = data.get('receive-avg', 0)
-	out['client-up'] = data.get('client-up', 0)
+	out['receive_min'] = data.get('receive-min', 0)
+	out['receive_max'] = data.get('receive-max', 0)
+	out['receive_avg'] = data.get('receive-avg', 0)
+	out['message'] = data.get('message', '')
 	return out
 
 def home(req):
@@ -66,10 +66,10 @@ def home(req):
 
 def status(req):
 	if req.method == 'GET':
-		last_id = req.GET.get('last_id')
-		if last_id is not None:
+		last_id_str = req.GET.get('last_id')
+		if last_id_str is not None:
 			try:
-				last_id = int(last_id)
+				int(last_id_str)
 			except:
 				return HttpResponseBadRequest('Bad Request: last_id wrong type\n')
 
@@ -79,17 +79,17 @@ def status(req):
 			return HttpResponse('Service Unavailable\n', status=503)
 
 		if 'id' in data:
-			id = str(data['id'])
+			id_str = str(data['id'])
 		else:
-			id = ''
+			id_str = ''
 
-		if last_id is None or last_id != id:
+		if last_id_str is None or last_id_str != id_str:
 			return HttpResponse(json.dumps(data) + '\n', content_type='application/json')
 		else:
 			if not grip.is_proxied(req, grip_proxies):
 				return HttpResponse('Not Implemented\n', status=501)
 
-			channel = gripcontrol.Channel(grip_prefix + 'status', id)
+			channel = gripcontrol.Channel(grip_prefix + 'status', None)#id_str)
 			theaders = dict()
 			theaders['Content-Type'] = 'application/json'
 			tbody = dict()

@@ -40,15 +40,33 @@ sock.connect('tcp://localhost:10101')
 
 while True:
 	m_raw = sock.recv()
-	m = json.loads(m_raw[6:])
+	data = json.loads(m_raw[6:])
+	print 'stats: %s' % data
 
-	id = str(m['id'])
-	if m['id'] > 0:
-		prev_id = str(m['id'] - 1)
+	id = str(data['id'])
+	if data['id'] > 0:
+		prev_id = str(data['id'] - 1)
 	else:
 		prev_id = ''
 
+	out = dict()
+	if 'id' in data:
+		out['id'] = data['id']
+	out['capacity'] = data.get('capacity', 0)
+	out['edge_up'] = data.get('edge-up', 0)
+	out['edge_total'] = data.get('edge-total', 0)
+	out['client_up'] = data.get('client-up', 0)
+	out['client_total'] = data.get('client-total', 0)
+	out['ping_min'] = data.get('ping-min', 0)
+	out['ping_max'] = data.get('ping-max', 0)
+	out['ping_avg'] = data.get('ping-avg', 0)
+	out['received'] = data.get('received', 0)
+	out['receive_min'] = data.get('receive-min', 0)
+	out['receive_max'] = data.get('receive-max', 0)
+	out['receive_avg'] = data.get('receive-avg', 0)
+	out['message'] = data.get('message', '')
+
 	hr_headers = dict()
 	hr_headers['Content-Type'] = 'application/json'
-	hr_body = json.dumps(m) + '\n'
+	hr_body = json.dumps(out) + '\n'
 	pub.publish(grip_prefix + 'status', id, prev_id, hr_headers, hr_body)
