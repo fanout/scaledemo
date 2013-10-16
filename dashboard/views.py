@@ -1,16 +1,48 @@
 import json
-from django.http import HttpResponse, HttpResponseNotAllowed
+from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseNotAllowed
 from django.template import RequestContext
 from django.shortcuts import render_to_response
+from django.conf import settings
+import gripcontrol
+import grip
 import redis_ops
 
 db = redis_ops.RedisOps()
+pub = grip.Publisher()
+
+if hasattr(settings, 'REDIS_HOST'):
+	db.host = settings.REDIS_HOST
+
+if hasattr(settings, 'REDIS_PORT'):
+	db.port = settings.REDIS_PORT
+
+if hasattr(settings, 'REDIS_DB'):
+	db.db = settings.REDIS_DB
+
+if hasattr(settings, 'GRIP_PROXIES'):
+	grip_proxies = settings.GRIP_PROXIES
+else:
+	grip_proxies = list()
+
+if hasattr(settings, 'DASHBOARD_REDIS_PREFIX'):
+	db.prefix = settings.DASHBOARD_REDIS_PREFIX
+else:
+	db.prefix = ''
+
+if hasattr(settings, 'DASHBOARD_GRIP_PREFIX'):
+	grip_prefix = settings.DASHBOARD_GRIP_PREFIX
+else:
+	grip_prefix = 'dashboard-'
+
+pub.proxies = grip_proxies
 
 def _get_stats():
 	data = db.get_stats_data()
 	if data is None:
 		data = dict()
 	out = dict()
+	if 'id' in data:
+		out['id'] = data['id']
 	out['capacity'] = data.get('capacity', 0)
 	out['edge-up'] = data.get('edge-up', 0)
 	out['edge-total'] = data.get('edge-total', 0)
@@ -26,15 +58,44 @@ def _get_stats():
 	out['client-up'] = data.get('client-up', 0)
 	return out
 
-def home(request):
-	if request.method == 'GET':
-		return render_to_response('dashboard/home.html', {}, context_instance=RequestContext(request))
+def home(req):
+	if req.method == 'GET':
+		return render_to_response('dashboard/home.html', {}, context_instance=RequestContext(req))
 	else:
 		return HttpResponseNotAllowed(['GET'])
 
-def status(request):
-	if request.method == 'GET':
-		out = _get_stats()
-		return HttpResponse(json.dumps(out) + '\n')
+def status(req):
+	if req.method == 'GET':
+		last_id = req.GET.get('last_id')
+		if last_id is not None:
+			try:
+				last_id = int(last_id)
+			except:
+				return HttpResponseBadRequest('Bad Request: last_id wrong type\n')
+
+		try:
+			data = _get_stats()
+		except:
+			return HttpResponse('Service Unavailable\n', status=503)
+
+		if 'id' in data:
+			id = str(data['id'])
+		else:
+			id = ''
+
+		if last_id is None or last_id != id:
+			return HttpResponse(json.dumps(data) + '\n', content_type='application/json')
+		else:
+			if not grip.is_proxied(req, grip_proxies):
+				return HttpResponse('Not Implemented\n', status=501)
+
+			channel = gripcontrol.Channel(grip_prefix + 'status', id)
+			theaders = dict()
+			theaders['Content-Type'] = 'application/json'
+			tbody = dict()
+			tbody_raw = json.dumps(tbody) + '\n'
+			tresponse = gripcontrol.Response(headers=theaders, body=tbody_raw)
+			instruct = gripcontrol.create_hold_response(channel, tresponse)
+			return HttpResponse(instruct, content_type='application/grip-instruct')
 	else:
 		return HttpResponseNotAllowed(['GET'])
