@@ -186,7 +186,7 @@ class RedisOps(object):
 					if ver_str:
 						ver = int(ver_str) + 1
 					else:
-						ver = 0
+						ver = 1
 
 					pipe.multi()
 					pipe.set(key, json.dumps(data))
