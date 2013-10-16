@@ -161,6 +161,9 @@
 		<script src="/static/js/pollymer-1.0.0.js"></script>
 		
 		<script>
+			var edgeChart = null;
+			var clientChart = null;
+
 			var startClient = function() {
 				var req = new Pollymer.Request();
 				var lastId = null;
@@ -263,6 +266,26 @@
 
 			$(document).ready(function(){
 				startClient();
+
+				edgeChart = $('#edgeServ').cprogress({
+					percent: 0,
+					img1: '/static/img/circle_bar.png',
+					img2: '/static/img/circle_bar_full.png',
+					limit: 0,
+					speed: 1,
+					PIStep: 0.1,
+					showPercent: false
+				});
+
+				clientChart = $('#clientServ').cprogress({
+					percent: 0,
+					img1: '/static/img/circle_bar.png',
+					img2: '/static/img/circle_bar_full.png',
+					limit: 0,
+					speed: 1,
+					PIStep: 0.1,
+					showPercent: false
+				});
 
 				/*$('#minimum').progressbar({
 					max: 1000,

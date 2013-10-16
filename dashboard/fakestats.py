@@ -17,6 +17,29 @@ while True:
 	print 'sending stats'
 	out = dict()
 	out['capacity'] = 100000
+	out['edge-up'] = 15
+	out['edge-total'] = 20
+	out['client-up'] = 15
+	out['client-total'] = 20
+	out['ping-min'] = 50
+	out['ping-max'] = 60
+	out['ping-avg'] = 55
+	out['received'] = 50000
+	out['receive-min'] = 50
+	out['receive-max'] = 60
+	out['receive-avg'] = 55
+	out['message'] = 'hello'
+	r.set('stats-data', json.dumps(out))
+	r.set('stats-data-version', str(id))
+	out['id'] = id
+	id += 1
+	sock.send('stats ' + json.dumps(out))
+
+	time.sleep(5)
+
+	print 'sending stats'
+	out = dict()
+	out['capacity'] = 100000
 	out['edge-up'] = 20
 	out['edge-total'] = 20
 	out['client-up'] = 20
@@ -24,7 +47,7 @@ while True:
 	out['ping-min'] = 50
 	out['ping-max'] = 100
 	out['ping-avg'] = 75
-	out['received'] = 50000
+	out['received'] = 77777
 	out['receive-min'] = 50
 	out['receive-max'] = 100
 	out['receive-avg'] = 75
