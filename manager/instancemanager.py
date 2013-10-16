@@ -815,7 +815,7 @@ def stats_worker(c):
 				# stats are the same as before. don't write/send
 				continue
 
-		db.set_stats_data(stats)
+		stats['id'] = db.set_stats_data(stats)
 		out_sock.send('stats ' + json.dumps(stats))
 
 db.config_set_base_uri(client_base_uri)

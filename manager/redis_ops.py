@@ -192,7 +192,7 @@ class RedisOps(object):
 					pipe.set(key, json.dumps(data))
 					pipe.set(version_key, str(ver))
 					pipe.execute()
-					break
+					return ver
 				except redis.WatchError:
 					continue
 
