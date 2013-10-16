@@ -12,22 +12,22 @@ sock.linger = 0
 
 time.sleep(1)
 
-id = 0
+id = 1
 while True:
 	print 'sending stats'
 	out = dict()
 	out['capacity'] = 100000
-	out['edge_up'] = 20
-	out['edge_total'] = 20
-	out['client_up'] = 20
-	out['client_total'] = 20
-	out['ping_min'] = 50
-	out['ping_max'] = 100
-	out['ping_avg'] = 75
+	out['edge-up'] = 20
+	out['edge-total'] = 20
+	out['client-up'] = 20
+	out['client-total'] = 20
+	out['ping-min'] = 50
+	out['ping-max'] = 100
+	out['ping-avg'] = 75
 	out['received'] = 50000
-	out['receive_min'] = 50
-	out['receive_max'] = 100
-	out['receive_avg'] = 75
+	out['receive-min'] = 50
+	out['receive-max'] = 100
+	out['receive-avg'] = 75
 	out['message'] = 'hello'
 	r.set('stats-data', json.dumps(out))
 	r.set('stats-data-version', str(id))
@@ -40,17 +40,17 @@ while True:
 	print 'sending stats'
 	out = dict()
 	out['capacity'] = 0
-	out['edge_up'] = 0
-	out['edge_total'] = 0
-	out['client_up'] = 0
-	out['client_total'] = 0
-	out['ping_min'] = 0
-	out['ping_max'] = 0
-	out['ping_avg'] = 0
+	out['edge-up'] = 0
+	out['edge-total'] = 0
+	out['client-up'] = 0
+	out['client-total'] = 0
+	out['ping-min'] = 0
+	out['ping-max'] = 0
+	out['ping-avg'] = 0
 	out['received'] = 0
-	out['receive_min'] = 0
-	out['receive_max'] = 0
-	out['receive_avg'] = 0
+	out['receive-min'] = 0
+	out['receive-max'] = 0
+	out['receive-avg'] = 0
 	out['message'] = ''
 	r.set('stats-data', json.dumps(out))
 	r.set('stats-data-version', str(id))

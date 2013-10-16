@@ -39,10 +39,9 @@ pub.proxies = grip_proxies
 def _get_stats():
 	data = db.get_stats_data()
 	if data is None:
-		data = dict()
+		data = dict({ 'id': 0 })
 	out = dict()
-	if 'id' in data:
-		out['id'] = data['id']
+	out['id'] = data['id']
 	out['capacity'] = data.get('capacity', 0)
 	out['edge_up'] = data.get('edge-up', 0)
 	out['edge_total'] = data.get('edge-total', 0)
@@ -66,10 +65,10 @@ def home(req):
 
 def status(req):
 	if req.method == 'GET':
-		last_id_str = req.GET.get('last_id')
-		if last_id_str is not None:
+		last_id = req.GET.get('last_id')
+		if last_id is not None:
 			try:
-				int(last_id_str)
+				last_id = int(last_id)
 			except:
 				return HttpResponseBadRequest('Bad Request: last_id wrong type\n')
 
@@ -78,18 +77,13 @@ def status(req):
 		except:
 			return HttpResponse('Service Unavailable\n', status=503)
 
-		if 'id' in data:
-			id_str = str(data['id'])
-		else:
-			id_str = ''
-
-		if last_id_str is None or last_id_str != id_str:
+		if last_id is None or last_id != data['id']:
 			return HttpResponse(json.dumps(data) + '\n', content_type='application/json')
 		else:
 			if not grip.is_proxied(req, grip_proxies):
 				return HttpResponse('Not Implemented\n', status=501)
 
-			channel = gripcontrol.Channel(grip_prefix + 'status', None)#id_str)
+			channel = gripcontrol.Channel(grip_prefix + 'status', str(data['id']))
 			theaders = dict()
 			theaders['Content-Type'] = 'application/json'
 			tbody = dict()

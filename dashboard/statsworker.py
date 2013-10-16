@@ -43,15 +43,11 @@ while True:
 	data = json.loads(m_raw[6:])
 	print 'stats: %s' % data
 
-	id = str(data['id'])
-	if data['id'] > 0:
-		prev_id = str(data['id'] - 1)
-	else:
-		prev_id = ''
+	assert(data['id'] > 0)
+	prev_id = data['id'] - 1
 
 	out = dict()
-	if 'id' in data:
-		out['id'] = data['id']
+	out['id'] = data['id']
 	out['capacity'] = data.get('capacity', 0)
 	out['edge_up'] = data.get('edge-up', 0)
 	out['edge_total'] = data.get('edge-total', 0)
@@ -69,4 +65,4 @@ while True:
 	hr_headers = dict()
 	hr_headers['Content-Type'] = 'application/json'
 	hr_body = json.dumps(out) + '\n'
-	pub.publish(grip_prefix + 'status', id, prev_id, hr_headers, hr_body)
+	pub.publish(grip_prefix + 'status', str(id), str(prev_id), hr_headers, hr_body)

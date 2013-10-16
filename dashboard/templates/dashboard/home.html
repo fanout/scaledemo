@@ -36,13 +36,13 @@
 					<div class="space-left">
 						<div class="Servers">
 							<div class="numServ">
-								<p class="nServ">153</p><p class="aServ">/190</p>
+								<p id="edge-up" class="nServ">0</p><p id="edge-total" class="aServ">/0</p>
 								<div id="edgeServ" max="190" value="153"></div>
 								<p>NUMBER OF</p>
 								<p class="nameServ">EDGE SERVERS</p>
 							</div>
 							<div class="numServ">
-								<p class="nServ">102</p><p class="aServ">/190</p>
+								<p id="client-up" class="nServ">0</p><p id="client-total" class="aServ">/0</p>
 								<div id="clientServ" max="190" value="102"></div>
 								<p>NUMBER OF</p>
 								<p class="nameServ">CLIENT SERVERS</p>
@@ -55,20 +55,20 @@
 						<h2 class="sub-caption">(in miliseconds, of all servers)</h2>
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">MINIMUM</p>
-							<p class="hbar-value">327</p></div>
-							<div class="hbar" id="minimum" max="1000" value="327"></div>
+							<p id="minimum-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="minimum" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 						
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">MAXIMUM</p>
-							<p class="hbar-value">849</p></div>
-							<div class="hbar" id="maximum" max="1000" value="849"></div>
+							<p id="maximum-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="maximum" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 						
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">AVERAGE</p>
-							<p class="hbar-value">651</p></div>
-							<div class="hbar" id="average" max="1000" value="651"></div>
+							<p id="average-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="average" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 					</div> <!-- space-right -->
 					<div class="horizontal-separator"></div>
@@ -78,7 +78,7 @@
 					<div class="space-left">
 					<div class="lastMsgR">
 							<p style="margin:0;">LAST RECEIVED MESSAGE:</p>
-							<p class="Message">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+							<p id="message" class="Message">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 								Suspendisse ac risus tristique, dictum dui nec, dictum nisi. Nulla
 								tristique eros leo, ac pulvinar arcu ullamcorper non.</p>
 							<textarea rows="6" cols="65" id="SndMessage" placeholder="Enter a message to all of the clients"></textarea>
@@ -89,7 +89,7 @@
 					<div class="space-right">
 						<div class="lastMsgR">
 							<p>NUMBER OF CLIENTS THAT HAVE RECEIVED THE LAST MESSAGE</p>
-							<p class="numRC">427,385</p>
+							<p id="received" class="numRC">0</p>
 							<div class="horizontal-separator"></div>
 						</div>
 						
@@ -97,20 +97,20 @@
 						<h2 class="sub-caption">(in miliseconds)</h2>
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">MINIMUM</p>
-							<p class="hbar-value">327</p></div>
-							<div class="hbar" id="DtMinimum" max="1000" value="327"></div>
+							<p id="DtMinimum-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="DtMinimum" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 						
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">MAXIMUM</p>
-							<p class="hbar-value">849</p></div>
-							<div class="hbar" id="DtMaximum" max="1000" value="849"></div>
+							<p id="DtMaximum-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="DtMaximum" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 						
 						<div class="horizontal-bar">
 							<div class="hcap"><p class="hbar-caption">AVERAGE</p>
-							<p class="hbar-value">651</p></div>
-							<div class="hbar" id="DtAverage" max="1000" value="651"></div>
+							<p id="DtAverage-val" class="hbar-value">0</p></div>
+							<div class="hbar" id="DtAverage" max="1000" value="0"></div>
 						</div> <!-- horizontal-bar -->
 						
 					</div> <!-- space-right -->
@@ -158,10 +158,113 @@
 		<script src="/static/js/jquery-1.9.1.js"></script>
 		<script src="/static/js/jquery-ui-progress.js"></script>
 		<script src="/static/js/jCProgress-1.0.3.js"></script>
+		<script src="/static/js/pollymer-1.0.0.js"></script>
 		
 		<script>
-			$(document).ready(function(){
+			var startClient = function() {
+				var req = new Pollymer.Request();
+				var lastId = null;
+				req.recurring = true;
+				req.maxTries = -1;
+				req.on('finished', function(code, result) {
+					if(result.id == null) {
+						return;
+					}
+					lastId = result.id;
+					updateElements(result);
+				});
+				req.start('GET', function() {
+					if(lastId != null) {
+						return '/status/?last_id=' + lastId;
+					} else {
+						return '/status/';
+					}
+				});
+			};
+
+			var updateElements = function(data) {
+				console.log('updateElements');
+
+				ping_bar_max = 1000;
+				/*ping_bar_max = data.ping_min;
+				if(data.ping_max > ping_bar_max) {
+					ping_bar_max = data.ping_max;
+				}
+				if(data.ping_avg > ping_bar_max) {
+					ping_bar_avg = data.ping_avg;
+				}*/
+
+				dt_bar_max = 1000;
+				/*dt_bar_max = data.receive_min;
+				if(data.receive_max > dt_bar_max) {
+					dt_bar_max = data.receive_max;
+				}
+				if(data.receive_avg > dt_bar_max) {
+					dt_bar_avg = data.receive_avg;
+				}*/
+
+				$('#inputCapacity').val('' + data.capacity);
+
+				$('#edge-up').text('' + data.edge_up);
+				$('#edge-total').text('/' + data.edge_total);
+				$('#client-up').text('' + data.client_up);
+				$('#client-total').text('/' + data.client_total);
+
+				/*var edgeServVal = 100 * data.edge_up / data.edge_total;
+				$('#edgeServ').cprogress({
+					percent: 10,
+					img1: '/static/img/circle_bar.png',
+					img2: '/static/img/circle_bar_full.png',
+					limit: edgeServVal,
+					speed: 1,
+					PIStep: 0.1,
+					showPercent: false
+				});*/
+
+				$('#minimum-val').text('' + data.ping_min);
 				$('#minimum').progressbar({
+					max: ping_bar_max,
+					value: data.ping_min
+				});
+
+				$('#maximum-val').text('' + data.ping_max);
+				$('#maximum').progressbar({
+					max: ping_bar_max,
+					value: data.ping_max
+				});
+
+				$('#average-val').text('' + data.ping_avg);
+				$('#average').progressbar({
+					max: ping_bar_max,
+					value: data.ping_avg
+				});
+
+				$('#DtMinimum-val').text('' + data.receive_min);
+				$('#DtMinimum').progressbar({
+					max: dt_bar_max,
+					value: data.receive_min
+				});
+
+				$('#DtMaximum-val').text('' + data.receive_max);
+				$('#DtMaximum').progressbar({
+					max: dt_bar_max,
+					value: data.receive_max
+				});
+
+				$('#DtAverage-val').text('' + data.receive_avg);
+				$('#DtAverage').progressbar({
+					max: dt_bar_max,
+					value: data.receive_avg
+				});
+
+				$('#received').text('' + data.received);
+				$('#message').text(data.message);
+			};
+
+			$(document).ready(function(){
+				startClient();
+
+				/*$('#minimum').progressbar({
 					max: 1000,
 					value: 327
 				});
@@ -212,7 +315,7 @@
 					speed: 1,
 					PIStep: 0.1,
 					showPercent: false
-				});
+				});*/
 			});
 		</script>
 	</body>
