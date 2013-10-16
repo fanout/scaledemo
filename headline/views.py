@@ -28,7 +28,7 @@ else:
 	db.prefix = 'headline-'
 
 if hasattr(settings, 'HEADLINE_GRIP_PREFIX'):
-	grip_prefix = settings.WHINBOX_GRIP_PREFIX
+	grip_prefix = settings.HEADLINE_GRIP_PREFIX
 else:
 	grip_prefix = 'headline-'
 
