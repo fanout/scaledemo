@@ -6,46 +6,46 @@
         
         <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800' rel='stylesheet' type='text/css'>
         <link href="/static/css/fanout.css" rel="stylesheet">
-        <script src="/static/js/css_browser_selector.js"></script>
-        <link href="/static/css/fanout.chrome.css" rel="stylesheet">
     </head>
 
 	<body>
-		<div class="nav">
+		<nav>
 			<div class="wrap">
 				<a class="logo pull-left" href="#"><img src="/static/img/logo.png"></a>
-				<div class="logged-out pull-right">
-					<a href="#">Login</a>
-				</div> <!-- logged-out -->
-				<div class="logged-in pull-right">
-					<p><div id="user">Welcome, <a href="#">Username</a></div> | <a href="#">SETTINGS</a></p>
-				</div> <!-- logged-in -->
 			</div> <!-- wrap -->
-		</div> <!-- nav -->
+		</nav>
 		<div class="container">
 			<div class="wrap">
 				<div class="capacity">
-					<div id="input-border"></div>
-					<div class="capacity-input">
-						<input type="text" id="inputCapacity" placeholder="1,000,000">
-						<a class="capacity-btn"></a>
-					</div> <!-- capacity-input -->
-					<p>Enter the number of desired clients to support</p>
+                    <div class="label">
+                        Number of clients
+                    </div>
+                    <div id="capacity">0</div>
 				</div> <!-- capacity -->
 				<div class="space-row">
 					<div class="space-left">
 						<div class="Servers">
 							<div class="numServ">
-								<p id="edge-up" class="nServ">0</p><p id="edge-total" class="aServ">/0</p>
-								<div id="edgeServ" max="190" value="153"></div>
-								<p>NUMBER OF</p>
-								<p class="nameServ">EDGE SERVERS</p>
+                                <canvas id="edgeServCanvas" width="180" height="180">
+                                </canvas>
+                                <div class="counts">
+                                    <strong id="edge-up" class="nServ">0</strong>/<span id="edge-total">0</span>
+                                </div>
+                                <div class="label">
+                                    <div>NUMBER OF</div>
+                                    <div><strong>EDGE SERVERS</strong></div>
+                                </div>
 							</div>
 							<div class="numServ">
-								<p id="client-up" class="nServ">0</p><p id="client-total" class="aServ">/0</p>
-								<div id="clientServ" max="190" value="102"></div>
-								<p>NUMBER OF</p>
-								<p class="nameServ">CLIENT SERVERS</p>
+                                <canvas id="clientServCanvas" width="180" height="180">
+                                </canvas>
+                                <div class="counts">
+                                    <strong id="client-up" class="nServ">0</strong>/<span id="client-total">0</span>
+                                </div>
+                                <div class="label">
+                                    <div>NUMBER OF</div>
+                                    <div><strong>CLIENT SERVERS</strong></div>
+                                </div>
 							</div>
 						</div>
 					</div> <!-- space-left -->
@@ -76,13 +76,15 @@
 				
 				<div class="space-row second-row">
 					<div class="space-left">
-					<div class="lastMsgR">
+    					<div class="lastMsgR">
 							<p style="margin:0;">LAST RECEIVED MESSAGE:</p>
+                        </div>
+                        <div class="send-receive">
 							<p id="message" class="Message">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 								Suspendisse ac risus tristique, dictum dui nec, dictum nisi. Nulla
 								tristique eros leo, ac pulvinar arcu ullamcorper non.</p>
 							<textarea rows="6" cols="65" id="SndMessage" placeholder="Enter a message to all of the clients"></textarea>
-							<div id="SndMsgBtn">SEND</div>
+							<button id="SndMsgBtn">SEND</button>
 						</div>
 					</div> <!-- space-left -->
 					<div class="vertical-separator2"></div>
@@ -148,7 +150,11 @@
       })();
     </script>
 </head>
-<body></textarea>
+<body>
+<!--Content-->
+</body>
+</html>
+                        </textarea>
 					</div> <!-- wrap -->
 				</div> <!-- space-row -->
 				
@@ -157,7 +163,7 @@
 		
 		<script src="/static/js/jquery-1.9.1.js"></script>
 		<script src="/static/js/jquery-ui-progress.js"></script>
-		<script src="/static/js/jCProgress-1.0.3.js"></script>
+		<script src="/static/js/gauge.min.js"></script>
 		<script src="/static/js/pollymer-1.0.0.js"></script>
 		
 		<script>
@@ -178,9 +184,9 @@
 				});
 				req.start('GET', function() {
 					if(lastId != null) {
-						return '/status/?last_id=' + lastId;
+						return 'http://scaledemo.fanout.io/status/?last_id=' + lastId;
 					} else {
-						return '/status/';
+						return 'http://scaledemo.fanout.io/status/';
 					}
 				});
 			};
@@ -206,23 +212,32 @@
 					dt_bar_avg = data.receive_avg;
 				}*/
 
-				$('#inputCapacity').val('' + data.capacity);
+				$('#capacity').text('' + data.capacity);
 
 				$('#edge-up').text('' + data.edge_up);
-				$('#edge-total').text('/' + data.edge_total);
+				$('#edge-total').text('' + data.edge_total);
 				$('#client-up').text('' + data.client_up);
-				$('#client-total').text('/' + data.client_total);
+				$('#client-total').text('' + data.client_total);
 
-				/*var edgeServVal = 100 * data.edge_up / data.edge_total;
-				$('#edgeServ').cprogress({
-					percent: 10,
-					img1: '/static/img/circle_bar.png',
-					img2: '/static/img/circle_bar_full.png',
-					limit: edgeServVal,
-					speed: 1,
-					PIStep: 0.1,
-					showPercent: false
-				});*/
+                var edgeServVal = 100 * data.edge_up / data.edge_total;
+                if (isNaN(edgeServVal)) {
+                    edgeServVal = 0;
+                }
+                if (edgeServVal<1) {
+                    edgeServVal = 1
+                }
+                console.log(edgeServVal);
+                edgeChart.set(edgeServVal);
+
+                var clientServVal = 100 * data.client_up / data.client_total;
+                if (isNaN(clientServVal)) {
+                    clientServVal = 0;
+                }
+                if (clientServVal<1) {
+                    clientServVal = 1
+                }
+                console.log(clientServVal);
+                clientChart.set(clientServVal);
 
 				$('#minimum-val').text('' + data.ping_min);
 				$('#minimum').progressbar({
@@ -267,78 +282,35 @@
 			$(document).ready(function(){
 				startClient();
 
-				edgeChart = $('#edgeServ').cprogress({
-					percent: 0,
-					img1: '/static/img/circle_bar.png',
-					img2: '/static/img/circle_bar_full.png',
-					limit: 0,
-					speed: 1,
-					PIStep: 0.1,
-					showPercent: false
-				});
+                var gaugeOpts = {
+                    lines: 12, // The number of lines to draw
+                    angle: 0.25, // The length of each line
+                    lineWidth: 0.1, // The line thickness
+                    pointer: {
+                        length: 0.9, // The radius of the inner circle
+                        strokeWidth: 0.035, // The rotation offset
+                        color: '#000000' // Fill color
+                    },
+                    limitMax: 'false',   // If true, the pointer will not go past the end of the gauge
 
-				clientChart = $('#clientServ').cprogress({
-					percent: 0,
-					img1: '/static/img/circle_bar.png',
-					img2: '/static/img/circle_bar_full.png',
-					limit: 0,
-					speed: 1,
-					PIStep: 0.1,
-					showPercent: false
-				});
+                    colorStart: '#57CFC3',   // Colors
+                    colorStop: '#47BFB3',    // just experiment with them
+                    strokeColor: '#044440',   // to see which ones work best for you
+                    generateGradient: true
+                };
 
-				/*$('#minimum').progressbar({
-					max: 1000,
-					value: 327
-				});
-				
-				$('#maximum').progressbar({
-					max: 1000,
-					value: 849
-				});
-				
-				$('#average').progressbar({
-					max: 1000,
-					value: 651
-				});
-				
-				
-				$('#DtMinimum').progressbar({
-					max: 1000,
-					value: 327
-				});
-				
-				$('#DtMaximum').progressbar({
-					max: 1000,
-					value: 849
-				});
-				
-				$('#DtAverage').progressbar({
-					max: 1000,
-					value: 651
-				});
-				
-				var edgeServVal = 100 * $('#edgeServ').attr('value') / $('#edgeServ').attr('max');
-				$('#edgeServ').cprogress({
-					percent: 10,
-					img1: '/static/img/circle_bar.png',
-					img2: '/static/img/circle_bar_full.png',
-					limit: edgeServVal,
-					speed: 1,
-					PIStep: 0.1,
-					showPercent: false
-				});
-				
-				var clientServVal = 100 * $('#edgeServ').attr('value') / $('#edgeServ').attr('max');
-				$('#clientServ').cprogress({
-					percent: 10,
-					img1: '/static/img/circle_bar.png',
-					img2: '/static/img/circle_bar_full.png',
-					limit: edgeServVal,
-					speed: 1,
-					PIStep: 0.1,
-					showPercent: false
-				});*/
+                var edgeServCanvas = document.getElementById('edgeServCanvas');
+                edgeChart = new Donut(edgeServCanvas).setOptions(gaugeOpts);
+                edgeChart.maxValue = 100; // set max gauge value
+                edgeChart.animationSpeed = 55; // set animation speed (32 is default value)
+                edgeChart.set(1);
+
+                var clientServCanvas = document.getElementById('clientServCanvas');
+                clientChart = new Donut(clientServCanvas).setOptions(gaugeOpts);
+                clientChart.maxValue = 100; // set max gauge value
+                clientChart.animationSpeed = 55; // set animation speed (32 is default value)
+                clientChart.set(1);
+
 			});
 		</script>
 	</body>

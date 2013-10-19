@@ -1,3 +1,8 @@
+* {
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
 @font-face {
 	font-family: "Lucida Console";
 	src: url('../fonts/lucon.ttf');
@@ -19,8 +24,8 @@ a {
 }
 
 textarea {
-	font-family: "Ludica Console";
-	font-size: 0.813em;
+	font-family: "Lucida Console";
+	font-size: 0.9em;
 	color: #939496;
 	border: none;
 	background-color: #222222;
@@ -31,8 +36,8 @@ textarea {
 }
 
 .wrap {
-	min-width: 26.25em;
-	max-width: 72.5em;
+	min-width: 320px;
+	max-width: 960px;
 	position: relative;
 	margin: 0 auto;
 	overflow: hidden;
@@ -40,15 +45,15 @@ textarea {
 
 .container {
 	width: 100%;
-	min-height: 31.25em;
+	min-height: 300px;
 	position: relative;
 	margin: 0 auto;
 	overflow: hidden;
-	margin-top: 4.438em;
+	padding-top: 90px;
 }
 
 .container .wrap {
-	min-height: 18.75em;
+	min-height: 180px;
 }
 
 .pull-left {
@@ -59,128 +64,68 @@ textarea {
 	float: right;
 }
 
-.nav {
+nav {
 	width: 100%;
-	height: 4.438em;
+	height: 75px;
 	background: url('../img/menu_background.jpg') top left repeat;
 	position: fixed;
 	top: 0;
 	left: 0;
 	overflow: hidden;
-	z-index: 999;
+	z-index: 1;
 }
 
-.nav div, p, a {
+nav div, p, a {
 	display: inline-block;
 }
 
-.nav .wrap {
+nav .wrap {
 	display: block;
 	margin: 0 auto;
 }
 
-.nav a.logo {
+nav a.logo {
 	display: block;
 	margin: 0;
 }
 
-.nav .logo img {
-	height: 4.375em
-}
-
-.nav .logged-out {
-	display: none;
-}
-
-.nav .logged-in, .nav-logged-out {
-	margin-top: 0.313em;
-	font-weight: 600;
-}
-
-.nav .logged-in #user, .nav-logged-out #user{
-	font-weight: 500;
+nav .logo img {
+	height: 75px;
 }
 
 .capacity {
-	width: 22.5em;
+	width: 400px;
 	position: relative;
 	margin: 0 auto;
 	overflow: hidden;
 }
 
-.capacity #input-border {
-	display: inline-block;
-	width: 22.375em;
-	height: 1.125em;
-	border: groove 1px #757575;
-	border-top: none;
-	margin-bottom: -4.5em;
-	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
-	-moz-box-shadow:    0px 1px 0px rgba(58, 58, 58, 1);
-	box-shadow:         0px 1px 0px rgba(58, 58, 58, 1);
+.capacity .label {
+    text-align:center;
+    font-size: 1.125em;
+    font-weight: 600;
+    color: white;
+    text-transform: uppercase;
 }
 
-.capacity .capacity-input {
-	position: relative;
-	margin: 0 auto;
-	overflow: hidden;
-}
-
-.capacity .capacity-input #inputCapacity {
-	display: inline-block;
-	position: relative;
-	width: 5.9em;
-	margin: 0;
-	margin-left: 0.31em;
-	overflow: hidden;
-	outline: none;
-	background-color: transparent;
-	border: none;
-	font-family: "Open Sans Light";
-	font-size: 3em;
-	color: #808080;
-}
-
-.capacity .capacity-input .capacity-btn {
-	display: inline-block;
-	position: relative;
-	width: 1.625em;
-	height: 1.625em;
-	background: url('../img/capacity_btn.png') center center no-repeat;
-	margin: 0;
-	margin-right: 1.188em;
-	margin-left: auto;
-	margin-top: 1.25em;
-	margin-bottom: 1.188em;
-	float: right;
-	-webkit-border-radius: 0.125em;
-	-moz-border-radius: 0.125em;
-	border-radius: 0.125em;
-	cursor: pointer;
-}
-
-.capacity p {
-	position: relative;
-	width: 100%;
-	margin: 0;
-	text-align: center;
-	font-family: "Open Sans";
-	font-weight: 400;
-	font-size: 0.938em;
-	font-style: italic;
+#capacity {
+    text-align:center;
+    font-size: 3em;
+    font-weight: 300;
+    color: #47BFB3;
 }
 
 .space-row {
 	margin: 0;
-	margin-top: 2.375em;
+	margin-top: 40px;
 }
 
 .space-row h2 {
-	font-size: 1.313em;
+	font-size: 1.3em;
 	font-weight: 600;
 	line-height: 1;
 	display: inline;
-	margin-left: 1.563em;
+	margin-left: 20px;
 }
 
 .space-row h2.sub-caption {
@@ -189,7 +134,7 @@ textarea {
 }
 
 .space-left, .space-right {
-	width: 35.625em;
+	width: 480px;
 	margin: 0;
 	position: relative;
 }
@@ -244,57 +189,48 @@ textarea {
 .Servers {
 	margin: 0 auto;
 	overflow: hidden;
-	margin-left: 2.813em;
 }
 
 .numServ {
-	width: 15em;
-	height: 16.75em;
+	width: 240px;
+	height: 300px;
 	float: left;
-	padding-left: 1.2em;
-	margin-top: 3em;
 }
 
-.numServ p {
+.numServ strong {
+    font-weight: 600;
+}
+
+.numServ canvas {
+    display:block;
+    margin: 0 auto;
+}
+
+.numServ div {
 	display: block;
 	width: 100%;
 	text-align: center;
 	margin: 0;
 }
 
-.numServ p.nameServ {
-	font-weight: 600;
+.numServ .counts {
+    font-size: 1.5em;
 }
 
-.numServ p.nServ {
-	position: relative;
-	display: inline;
+.numServ .nServ {
 	color: white;
-	font-size: 2em;
-	font-weight: 600;
-	top: 0.70em;
-	left: 1.9em;
-}
-
-.numServ p.aServ {
-	position: relative;
-	display: inline;
-	font-size: 1.5em;
-	margin-left: 0.04em;
-	top: 0.9em;
-	left: 2.7em;
+	font-size: 1.6em;
 }
 
 .horizontal-bar {
 	margin-left: 1.563em;
 	margin-top: 3.125em;
-	width: 33.75em;
-	height: 2.188em;
+	height: 20px;
 	display: block;
 }
 
 .horizontal-bar .hcap {
-	min-height: 1.75em;
+	min-height: 20px;
 }
 
 .horizontal-bar p.hbar-caption {
@@ -317,7 +253,6 @@ textarea {
 
 .horizontal-bar .hbar {
 	position: relative;
-	width: 33.75em;
 	height: 0.688em;
 	border: none;
 	-webkit-box-shadow: 0px 1px 0px rgba(58, 58, 58, 1);
@@ -367,30 +302,47 @@ textarea {
 	margin: 0;
 	margin-top: 1.467em;
 	margin-bottom: 2.8em;
-	width: 37em;
-	max-width: 37em;
+}
+
+.send-receive {
+    padding: 10px;
 }
 
 #SndMessage {
 	font-family: "Open Sans";
 	font-size: 0.938em;
 	font-style: italic;
+    width: 100%;
 }
 
 #SndMsgBtn {
+    position: relative;
 	font-size: 0.867em;
 	font-weight: 600;
 	text-align: center;
 	vertical-align: middle;
-	padding-top: 0.9em;
-	margin-left: 0.2em;
-	width: 6.923em;
-	height: 2.154em;
+	padding: 0.9em;
 	background-color: #47c0b1;
 	color: #164b45;
-	-webkit-border-radius: 2px;
-	-moz-border-radius: 2px;
-	border-radius: 2px;
+	-webkit-border-radius: 3px;
+	-moz-border-radius: 3px;
+	border-radius: 3px;
+    border: 0;
+    cursor: pointer;
+    -webkit-transition: background 0.1s ease-in-out;
+    -moz-transition: background 0.1s ease-in-out;
+    -ms-transition: background 0.1s ease-in-out;
+    -o-transition: background 0.1s ease-in-out;
+    transition: background 0.1s ease-in-out;
+}
+
+#SndMsgBtn:active {
+    top: 2px;
+}
+
+#SndMsgBtn:hover {
+    background-color: #57d0c1;
+
 }
 
 @media (max-width: 1160px) {
