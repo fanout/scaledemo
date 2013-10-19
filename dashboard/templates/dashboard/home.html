@@ -83,45 +83,46 @@
 							<p id="message" class="Message">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
 								Suspendisse ac risus tristique, dictum dui nec, dictum nisi. Nulla
 								tristique eros leo, ac pulvinar arcu ullamcorper non.</p>
-							<textarea rows="6" cols="65" id="SndMessage" placeholder="Enter a message to all of the clients"></textarea>
-							<button id="SndMsgBtn">SEND</button>
 						</div>
 					</div> <!-- space-left -->
 					<div class="vertical-separator2"></div>
 					<div class="space-right">
 						<div class="lastMsgR">
-							<p>NUMBER OF CLIENTS THAT HAVE RECEIVED THE LAST MESSAGE</p>
+							<p>NUMBER OF CLIENTS THAT HAVE RECEIVED THE LAST MESSAGE:</p>
 							<p id="received" class="numRC">0</p>
-							<div class="horizontal-separator"></div>
 						</div>
-						
-						<h2>Delivery times </h2>
-						<h2 class="sub-caption">(in miliseconds)</h2>
-						<div class="horizontal-bar">
-							<div class="hcap"><p class="hbar-caption">MINIMUM</p>
-							<p id="DtMinimum-val" class="hbar-value">0</p></div>
-							<div class="hbar" id="DtMinimum" max="1000" value="0"></div>
-						</div> <!-- horizontal-bar -->
-						
-						<div class="horizontal-bar">
-							<div class="hcap"><p class="hbar-caption">MAXIMUM</p>
-							<p id="DtMaximum-val" class="hbar-value">0</p></div>
-							<div class="hbar" id="DtMaximum" max="1000" value="0"></div>
-						</div> <!-- horizontal-bar -->
-						
-						<div class="horizontal-bar">
-							<div class="hcap"><p class="hbar-caption">AVERAGE</p>
-							<p id="DtAverage-val" class="hbar-value">0</p></div>
-							<div class="hbar" id="DtAverage" max="1000" value="0"></div>
-						</div> <!-- horizontal-bar -->
-						
+
+                        <div class="horizontal-separator"></div>
+                        <div class="deliveryTimes">
+                            <h2>Delivery times </h2>
+                            <h2 class="sub-caption">(in miliseconds)</h2>
+                            <div class="horizontal-bar">
+                                <div class="hcap"><p class="hbar-caption">MINIMUM</p>
+                                    <p id="DtMinimum-val" class="hbar-value">0</p></div>
+                                <div class="hbar" id="DtMinimum" max="1000" value="0"></div>
+                            </div> <!-- horizontal-bar -->
+
+                            <div class="horizontal-bar">
+                                <div class="hcap"><p class="hbar-caption">MAXIMUM</p>
+                                    <p id="DtMaximum-val" class="hbar-value">0</p></div>
+                                <div class="hbar" id="DtMaximum" max="1000" value="0"></div>
+                            </div> <!-- horizontal-bar -->
+
+                            <div class="horizontal-bar">
+                                <div class="hcap"><p class="hbar-caption">AVERAGE</p>
+                                    <p id="DtAverage-val" class="hbar-value">0</p></div>
+                                <div class="hbar" id="DtAverage" max="1000" value="0"></div>
+                            </div> <!-- horizontal-bar -->
+
+                        </div>
+
 					</div> <!-- space-right -->
 					<div class="horizontal-separator"></div>
 				</div> <!-- space-row -->
 				
 				<div class="space-row">
 					<div class="wrap">
-						<textarea rows="15" cols="225"><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+						<textarea id="code-sample"><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
 	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
 <head prefix="og: http://ogp.me/ns# website: http://ogp.me/ns/website#">
@@ -160,15 +161,18 @@
 				
 			</div> <!-- wrap -->
 		</div> <!-- container -->
-		
+
 		<script src="/static/js/jquery-1.9.1.js"></script>
 		<script src="/static/js/jquery-ui-progress.js"></script>
 		<script src="/static/js/gauge.min.js"></script>
 		<script src="/static/js/pollymer-1.0.0.js"></script>
-		
+
 		<script>
 			var edgeChart = null;
 			var clientChart = null;
+
+            var capacityAnim = null;
+            var numClientsAnim = null;
 
 			var startClient = function() {
 				var req = new Pollymer.Request();
@@ -192,8 +196,6 @@
 			};
 
 			var updateElements = function(data) {
-				console.log('updateElements');
-
 				ping_bar_max = 1000;
 				/*ping_bar_max = data.ping_min;
 				if(data.ping_max > ping_bar_max) {
@@ -212,8 +214,6 @@
 					dt_bar_avg = data.receive_avg;
 				}*/
 
-				$('#capacity').text('' + data.capacity);
-
 				$('#edge-up').text('' + data.edge_up);
 				$('#edge-total').text('' + data.edge_total);
 				$('#client-up').text('' + data.client_up);
@@ -226,7 +226,6 @@
                 if (edgeServVal<1) {
                     edgeServVal = 1
                 }
-                console.log(edgeServVal);
                 edgeChart.set(edgeServVal);
 
                 var clientServVal = 100 * data.client_up / data.client_total;
@@ -236,7 +235,6 @@
                 if (clientServVal<1) {
                     clientServVal = 1
                 }
-                console.log(clientServVal);
                 clientChart.set(clientServVal);
 
 				$('#minimum-val').text('' + data.ping_min);
@@ -275,9 +273,21 @@
 					value: data.receive_avg
 				});
 
-				$('#received').text('' + data.received);
+                animateIncreasing(capacityAnim, data.capacity);
+                animateIncreasing(numClientsAnim, data.received);
+
 				$('#message').text(data.message);
 			};
+
+            var animateIncreasing = function(anim, value) {
+                if (value < anim.value) {
+                    anim.displayedValue = value * 1;
+                    anim.value = value * 1;
+                    anim.render();
+                } else {
+                    anim.setVal(value);
+                }
+            };
 
 			$(document).ready(function(){
 				startClient();
@@ -311,6 +321,13 @@
                 clientChart.animationSpeed = 55; // set animation speed (32 is default value)
                 clientChart.set(1);
 
+                var capacity = document.getElementById('capacity');
+                capacityAnim = new AnimatedText(capacity, false);
+                AnimationUpdater.add(capacityAnim);
+
+                var received = document.getElementById('received');
+                numClientsAnim = new AnimatedText(received, false);
+                AnimationUpdater.add(numClientsAnim);
 			});
 		</script>
 	</body>
